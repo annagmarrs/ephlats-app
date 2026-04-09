@@ -40,6 +40,9 @@ export function AttendeeCard({ item, viewMode, isCurrentUser }: Props) {
         size="md"
       />
       <p className="text-xs font-semibold text-neutral-900 leading-tight line-clamp-2">{item.name}</p>
+      {item.graduationYear > 0 && (
+        <p className="text-xs text-neutral-400">Class of {item.graduationYear}</p>
+      )}
       <EraBadge era={item.era as Era} />
       {!item.joined && (
         <p className="text-xs text-neutral-400">Not on app yet</p>
@@ -67,6 +70,7 @@ export function AttendeeCard({ item, viewMode, isCurrentUser }: Props) {
         </div>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <EraBadge era={item.era as Era} />
+          {item.graduationYear > 0 && <span className="text-xs text-neutral-400">Class of {item.graduationYear}</span>}
           {item.location && <span className="text-xs text-neutral-500 truncate">{item.location}</span>}
           {!item.joined && <span className="text-xs text-neutral-400">Not on app yet</span>}
         </div>

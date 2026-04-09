@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -20,8 +20,23 @@ export default function ChatThreadPage() {
   const [chat, setChat] = useState<Chat | null>(null);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Track visual viewport height (shrinks when keyboard appears)
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setViewportHeight(vv.height);
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
 
   useEffect(() => {
     getDoc(doc(db, 'chats', chatId)).then((snap) => {
@@ -38,21 +53,13 @@ export default function ChatThreadPage() {
     markMessagesRead(chatId, messages, user.uid).catch(() => {});
   }, [messages, chatId, user]);
 
-  // Handle keyboard appearance on iOS
-  useEffect(() => {
-    const handleResize = () => {
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-      }
-    };
-    window.visualViewport?.addEventListener('resize', handleResize);
-    return () => window.visualViewport?.removeEventListener('resize', handleResize);
-  }, []);
-
   const handleSend = async () => {
     if (!text.trim() || !user) return;
     const msgText = text.trim();
     setText('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     setSending(true);
     try {
       await sendMessage(chatId, {
@@ -63,7 +70,6 @@ export default function ChatThreadPage() {
         sentAt: serverTimestamp() as any,
         readBy: [user.uid],
       });
-      // Notify other participants
       await fetch('/api/chat-notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,11 +85,14 @@ export default function ChatThreadPage() {
     : 'Chat';
 
   return (
-    <div className="flex flex-col h-screen">
+    <div
+      className="flex flex-col overflow-hidden bg-white"
+      style={{ height: viewportHeight ? `${viewportHeight}px` : '100dvh' }}
+    >
       <TopHeader title={chatName} showBack backHref="/chat" />
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 min-h-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-1 min-h-0">
         {loading ? (
           <PageLoader />
         ) : messages.length === 0 ? (
@@ -104,7 +113,7 @@ export default function ChatThreadPage() {
       </div>
 
       {/* Input bar */}
-      <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+      <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <div className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
@@ -120,14 +129,17 @@ export default function ChatThreadPage() {
                 handleSend();
               }
             }}
+            onFocus={() => {
+              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 350);
+            }}
             placeholder="Type a message…"
             rows={1}
-            className="flex-1 resize-none border border-neutral-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[44px] max-h-24"
+            className="flex-1 resize-none border border-neutral-300 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[40px] max-h-24"
           />
           <button
             onClick={handleSend}
             disabled={!text.trim() || sending}
-            className="w-11 h-11 bg-purple-primary rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
+            className="w-10 h-10 bg-purple-primary rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
             aria-label="Send message"
           >
             <Send className="w-4 h-4 text-white" />
