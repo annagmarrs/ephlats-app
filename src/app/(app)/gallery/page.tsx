@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDocs, collection, query, where, getCountFromServer } from 'firebase/firestore';
+import { getDocs, collection, query, orderBy, limit, startAfter, QueryDocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { getPhotosByEvent, togglePhotoReaction, deletePhoto } from '@/lib/firestore';
+import { togglePhotoReaction, deletePhoto } from '@/lib/firestore';
 import { deleteStorageFile, getStoragePathFromUrl } from '@/lib/storage';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSchedule } from '@/hooks/useSchedule';
@@ -15,7 +15,6 @@ import { BulkSelectBar } from '@/components/gallery/BulkSelectBar';
 import { Button } from '@/components/ui/Button';
 import { Upload, CheckSquare } from 'lucide-react';
 import type { Photo, ScheduleEvent } from '@/lib/types';
-import { QueryDocumentSnapshot } from 'firebase/firestore';
 
 interface EventSection {
   event: ScheduleEvent;
@@ -26,69 +25,113 @@ interface EventSection {
   loading: boolean;
 }
 
+const PAGE_SIZE = 60;
+
+async function loadAllPhotos(lastDoc?: QueryDocumentSnapshot): Promise<{ photos: Photo[]; lastDoc: QueryDocumentSnapshot | null }> {
+  let q = query(collection(db, 'photos'), orderBy('uploadedAt', 'desc'), limit(PAGE_SIZE));
+  if (lastDoc) q = query(collection(db, 'photos'), orderBy('uploadedAt', 'desc'), limit(PAGE_SIZE), startAfter(lastDoc));
+  const snap = await getDocs(q);
+  const photos = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Photo));
+  return { photos, lastDoc: snap.docs[snap.docs.length - 1] || null };
+}
+
 export default function GalleryPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { events } = useSchedule();
   const [sections, setSections] = useState<EventSection[]>([]);
+  const [allLastDoc, setAllLastDoc] = useState<QueryDocumentSnapshot | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [selecting, setSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [viewerPhoto, setViewerPhoto] = useState<{ photo: Photo; photos: Photo[] } | null>(null);
 
   useEffect(() => {
+    setLoadingPhotos(true);
+    loadAllPhotos().then(({ photos, lastDoc }) => {
+      setAllLastDoc(lastDoc);
+      setHasMore(photos.length === PAGE_SIZE);
+      groupPhotos(photos, events);
+      setLoadingPhotos(false);
+    }).catch(() => setLoadingPhotos(false));
+  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-group when events load (event titles become available)
+  useEffect(() => {
     if (!events.length) return;
-    const initSections = async () => {
-      const newSections: (EventSection | null)[] = await Promise.all(
-        events.map(async (event) => {
-          try {
-            const countQ = query(collection(db, 'photos'), where('eventId', '==', event.id));
-            const countSnap = await getCountFromServer(countQ);
-            const count = countSnap.data().count;
-            if (count === 0) return null;
-            const { photos, lastDoc } = await getPhotosByEvent(event.id, 30);
-            return { event, photos, lastDoc, hasMore: photos.length === 30, count, loading: false };
-          } catch {
-            return null;
-          }
-        })
-      );
-      setSections(newSections.filter(Boolean) as EventSection[]);
-    };
-    initSections();
+    setSections((prev) => {
+      const allPhotos = prev.flatMap((s) => s.photos);
+      if (!allPhotos.length) return prev;
+      return buildSections(allPhotos, events);
+    });
   }, [events]);
 
-  const loadMore = async (eventId: string) => {
-    setSections((prev) => prev.map((s) => s.event.id === eventId ? { ...s, loading: true } : s));
-    const section = sections.find((s) => s.event.id === eventId);
-    if (!section || !section.hasMore) return;
-    const { photos: newPhotos, lastDoc } = await getPhotosByEvent(eventId, 30, section.lastDoc || undefined);
-    setSections((prev) => prev.map((s) =>
-      s.event.id === eventId
-        ? { ...s, photos: [...s.photos, ...newPhotos], lastDoc, hasMore: newPhotos.length === 30, loading: false }
-        : s
-    ));
+  function groupPhotos(photos: Photo[], evts: ScheduleEvent[]) {
+    setSections(buildSections(photos, evts));
+  }
+
+  function buildSections(photos: Photo[], evts: ScheduleEvent[]): EventSection[] {
+    const byEvent: Record<string, Photo[]> = {};
+    for (const photo of photos) {
+      if (!byEvent[photo.eventId]) byEvent[photo.eventId] = [];
+      byEvent[photo.eventId].push(photo);
+    }
+    const sections: EventSection[] = [];
+    for (const eventId of Object.keys(byEvent)) {
+      const eventPhotos = byEvent[eventId];
+      const event = evts.find((e) => e.id === eventId) || {
+        id: eventId,
+        title: 'Event',
+        date: '',
+        startTime: '',
+        endTime: '',
+        location: '',
+        type: 'social' as const,
+        description: '',
+        isConcert: false,
+        order: 0,
+      };
+      sections.push({ event, photos: eventPhotos, lastDoc: null, hasMore: false, count: eventPhotos.length, loading: false });
+    }
+    return sections.sort((a, b) => a.event.date.localeCompare(b.event.date) || a.event.order - b.event.order);
+  }
+
+  const handleLoadMore = async () => {
+    if (!allLastDoc) return;
+    const { photos: newPhotos, lastDoc } = await loadAllPhotos(allLastDoc);
+    setAllLastDoc(lastDoc);
+    setHasMore(newPhotos.length === PAGE_SIZE);
+    setSections((prev) => {
+      const allPhotos = [...prev.flatMap((s) => s.photos), ...newPhotos];
+      return buildSections(allPhotos, events);
+    });
   };
 
   const handleReact = async (photoId: string, emoji: string) => {
     if (!user) return;
-    const section = sections.find((s) => s.photos.some((p) => p.id === photoId));
-    if (!section) return;
-    const photo = section.photos.find((p) => p.id === photoId);
-    if (!photo) return;
-    const hasReacted = (photo.reactions[emoji] || []).includes(user.uid);
-    await togglePhotoReaction(photoId, emoji, user.uid, hasReacted);
     setSections((prev) => prev.map((s) => ({
       ...s,
-      photos: s.photos.map((p) => p.id !== photoId ? p : {
-        ...p,
-        reactions: {
-          ...p.reactions,
-          [emoji]: hasReacted
-            ? (p.reactions[emoji] || []).filter((id) => id !== user.uid)
-            : [...(p.reactions[emoji] || []), user.uid],
-        },
+      photos: s.photos.map((p) => {
+        if (p.id !== photoId) return p;
+        const hasReacted = (p.reactions[emoji] || []).includes(user.uid);
+        return {
+          ...p,
+          reactions: {
+            ...p.reactions,
+            [emoji]: hasReacted
+              ? (p.reactions[emoji] || []).filter((id) => id !== user.uid)
+              : [...(p.reactions[emoji] || []), user.uid],
+          },
+        };
       }),
     })));
+    const section = sections.find((s) => s.photos.some((p) => p.id === photoId));
+    const photo = section?.photos.find((p) => p.id === photoId);
+    if (photo) {
+      const hasReacted = (photo.reactions[emoji] || []).includes(user.uid);
+      await togglePhotoReaction(photoId, emoji, user.uid, hasReacted);
+    }
   };
 
   const handleDelete = async (photo: Photo) => {
@@ -102,15 +145,14 @@ export default function GalleryPage() {
       ...s,
       photos: s.photos.filter((p) => p.id !== photo.id),
       count: s.photos.some((p) => p.id === photo.id) ? s.count - 1 : s.count,
-    })));
+    })).filter((s) => s.photos.length > 0));
     setViewerPhoto(null);
   };
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   };
@@ -159,7 +201,11 @@ export default function GalleryPage() {
       />
 
       <div className="pb-4">
-        {sections.length === 0 ? (
+        {loadingPhotos ? (
+          <div className="text-center py-16 text-neutral-400">
+            <p className="text-sm">Loading photos…</p>
+          </div>
+        ) : sections.length === 0 ? (
           <div className="text-center py-16 text-neutral-400 p-4">
             <p className="text-3xl mb-3">📷</p>
             <p className="font-medium">No photos yet</p>
@@ -169,17 +215,24 @@ export default function GalleryPage() {
             </Button>
           </div>
         ) : (
-          sections.map((section) => (
-            <PhotoGrid
-              key={section.event.id}
-              section={section}
-              selecting={selecting}
-              selectedIds={selectedIds}
-              onToggleSelect={toggleSelect}
-              onLoadMore={() => loadMore(section.event.id)}
-              onOpenViewer={(photo) => setViewerPhoto({ photo, photos: section.photos })}
-            />
-          ))
+          <>
+            {sections.map((section) => (
+              <PhotoGrid
+                key={section.event.id}
+                section={section}
+                selecting={selecting}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
+                onLoadMore={() => {}}
+                onOpenViewer={(photo) => setViewerPhoto({ photo, photos: section.photos })}
+              />
+            ))}
+            {hasMore && (
+              <div className="flex justify-center py-4">
+                <Button variant="secondary" onClick={handleLoadMore}>Load more photos</Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
