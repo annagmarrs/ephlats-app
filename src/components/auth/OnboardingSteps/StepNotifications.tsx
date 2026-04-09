@@ -2,10 +2,9 @@
 
 import { Bell } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { requestNotificationPermission } from '@/lib/notifications';
-import { isIOSVersionTooOld } from '@/lib/notifications';
+import { requestNotificationPermission, isIOSVersionTooOld } from '@/lib/notifications';
 import { Button } from '@/components/ui/Button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Props {
   userId: string;
@@ -13,9 +12,26 @@ interface Props {
   onBack: () => void;
 }
 
+function getNotificationSupport(): 'supported' | 'ios-not-installed' | 'ios-too-old' | 'unsupported' {
+  if (typeof window === 'undefined') return 'unsupported';
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+  if (isIOS) {
+    const isInstalled = (window.navigator as any).standalone === true;
+    if (!isInstalled) return 'ios-not-installed';
+    if (isIOSVersionTooOld()) return 'ios-too-old';
+  }
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) return 'unsupported';
+  return 'supported';
+}
+
 export function StepNotifications({ userId, onNext, onBack }: Props) {
   const [loading, setLoading] = useState(false);
-  const tooOld = typeof window !== 'undefined' && isIOSVersionTooOld();
+  const [support, setSupport] = useState<ReturnType<typeof getNotificationSupport>>('supported');
+
+  useEffect(() => {
+    setSupport(getNotificationSupport());
+  }, []);
 
   const handleEnable = async () => {
     setLoading(true);
@@ -39,23 +55,37 @@ export function StepNotifications({ userId, onNext, onBack }: Props) {
 
       <div className="text-center">
         <h2 className="text-2xl font-bold text-neutral-900">Stay in the loop</h2>
-        <p className="text-neutral-600 mt-2">
-          We'll notify you about event updates, messages, and announcements. You can change this anytime.
-        </p>
-        {tooOld && (
-          <p className="text-sm text-amber-600 mt-3 bg-amber-50 rounded-xl p-3">
-            To receive push notifications, update to iOS 16.4 or later.
+        {support === 'ios-not-installed' ? (
+          <p className="text-neutral-600 mt-2">
+            Push notifications work when Ephlats 2026 is installed on your home screen.
+            You can enable them after installing — tap the gold banner on the home screen to get started.
+          </p>
+        ) : support === 'ios-too-old' ? (
+          <p className="text-neutral-600 mt-2">
+            Update to iOS 16.4 or later to receive push notifications.
+          </p>
+        ) : support === 'unsupported' ? (
+          <p className="text-neutral-600 mt-2">
+            Your browser doesn't support push notifications. Try Chrome or Safari on your phone.
+          </p>
+        ) : (
+          <p className="text-neutral-600 mt-2">
+            We'll notify you about event updates, messages, and announcements. You can change this anytime.
           </p>
         )}
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button onClick={handleEnable} loading={loading} fullWidth size="lg">
-          Enable Notifications
-        </Button>
+        {support === 'supported' && (
+          <Button onClick={handleEnable} loading={loading} fullWidth size="lg">
+            Enable Notifications
+          </Button>
+        )}
         <div className="flex gap-3">
           <Button type="button" variant="secondary" onClick={onBack} fullWidth>Back</Button>
-          <Button variant="ghost" onClick={onNext} fullWidth>Not now</Button>
+          <Button variant="ghost" onClick={onNext} fullWidth>
+            {support === 'supported' ? 'Not now' : 'Continue'}
+          </Button>
         </div>
       </div>
     </div>

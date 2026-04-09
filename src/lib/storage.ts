@@ -6,7 +6,7 @@ export async function uploadProfilePhoto(userId: string, file: File): Promise<st
   const compressed = await imageCompression(file, {
     maxSizeMB: 0.5,
     maxWidthOrHeight: 800,
-    useWebWorker: true,
+    useWebWorker: false,
   });
   const storageRef = ref(storage, `profilePhotos/${userId}/avatar.jpg`);
   await uploadBytes(storageRef, compressed, { contentType: 'image/jpeg' });
@@ -22,14 +22,14 @@ export async function uploadGalleryPhoto(
   const compressed = await imageCompression(file, {
     maxSizeMB: 1,
     maxWidthOrHeight: 1920,
-    useWebWorker: true,
+    useWebWorker: false,
   });
 
   // Thumbnail (max 400px)
   const thumbnail = await imageCompression(file, {
     maxSizeMB: 0.1,
     maxWidthOrHeight: 400,
-    useWebWorker: true,
+    useWebWorker: false,
   });
 
   const photoRef = ref(storage, `galleryPhotos/${eventId}/${photoId}.jpg`);
