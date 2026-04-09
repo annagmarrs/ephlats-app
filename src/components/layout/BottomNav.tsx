@@ -1,0 +1,40 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, Calendar, Image, Users, MessageCircle } from 'lucide-react';
+
+const NAV_ITEMS = [
+  { href: '/home', label: 'Home', icon: Home },
+  { href: '/schedule', label: 'Schedule', icon: Calendar },
+  { href: '/gallery', label: 'Gallery', icon: Image },
+  { href: '/people', label: 'People', icon: Users },
+  { href: '/chat', label: 'Chat', icon: MessageCircle },
+];
+
+export function BottomNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-neutral-200 pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-stretch max-w-lg mx-auto h-16">
+        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          const active = pathname.startsWith(href);
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors min-h-[64px]
+                ${active ? 'text-purple-primary' : 'text-neutral-400 hover:text-neutral-600'}`}
+              aria-label={label}
+            >
+              <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />
+              <span className="text-xs font-medium leading-none">{label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}

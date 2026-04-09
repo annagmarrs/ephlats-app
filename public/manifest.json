@@ -1,0 +1,15 @@
+{
+  "name": "Ephlats 2026",
+  "short_name": "Ephlats",
+  "description": "Williams College Ephlats Reunion App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#6B2D8B",
+  "theme_color": "#6B2D8B",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
