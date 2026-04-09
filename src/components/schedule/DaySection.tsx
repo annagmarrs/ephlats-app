@@ -17,10 +17,10 @@ export function DaySection({ label, events }: Props) {
     <div>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full sticky top-14 z-20 bg-neutral-100 px-4 py-2.5 border-b border-neutral-200 flex items-center justify-between min-h-[44px]"
+        className="w-full sticky top-14 z-20 bg-gold-light px-4 py-2.5 border-b border-gold-primary/30 flex items-center justify-between min-h-[44px]"
         aria-expanded={open}
       >
-        <h2 className="text-sm font-bold text-neutral-600 uppercase tracking-wide">{label}</h2>
+        <h2 className="text-sm font-bold text-yellow-800 uppercase tracking-wide">{label}</h2>
         <ChevronDown
           className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />

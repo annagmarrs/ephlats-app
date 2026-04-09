@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin } from 'lucide-react';
+import { MapPin, ChevronRight } from 'lucide-react';
 import { EventTypeBadge } from './EventTypeBadge';
 import type { ScheduleEvent } from '@/lib/types';
 import { EVENT_COLORS } from '@/lib/types';
@@ -70,6 +70,9 @@ export function EventCard({ event }: { event: ScheduleEvent }) {
             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
             <span className="truncate">{event.location}</span>
           </div>
+        </div>
+        <div className="flex items-center pr-3">
+          <ChevronRight className="w-4 h-4 text-neutral-300" />
         </div>
       </div>
     </Link>

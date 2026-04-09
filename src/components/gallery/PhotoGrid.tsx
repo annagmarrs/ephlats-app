@@ -73,14 +73,14 @@ export function PhotoGrid({ section, selecting, selectedIds, onToggleSelect, onL
   const albumTitle = section.photos[0]?.eventTitle || section.event.title;
 
   return (
-    <div className="px-4 mb-4">
+    <div className="mb-1">
       {/* Album card */}
       <button
         className="w-full text-left"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
-        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-neutral-100 active:opacity-80 transition-opacity">
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border-2 border-purple-primary/30 active:opacity-80 transition-opacity hover:border-purple-primary/60">
           {/* Cover mosaic */}
           <div className="relative w-full aspect-[4/3] bg-neutral-100 overflow-hidden">
             <AlbumCover photos={section.photos} />
@@ -92,15 +92,15 @@ export function PhotoGrid({ section, selecting, selectedIds, onToggleSelect, onL
           </div>
 
           {/* Album footer */}
-          <div className="px-4 py-3 flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-neutral-900 text-sm leading-tight">{albumTitle}</p>
+          <div className="px-3 py-2.5 flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-purple-dark text-base leading-tight truncate">{albumTitle}</p>
               {section.event.date && (
                 <p className="text-xs text-neutral-400 mt-0.5">{formatDate(section.event.date)}</p>
               )}
             </div>
             <ChevronDown
-              className={`w-5 h-5 text-neutral-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 text-purple-primary flex-shrink-0 ml-1 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
             />
           </div>
         </div>
@@ -108,7 +108,7 @@ export function PhotoGrid({ section, selecting, selectedIds, onToggleSelect, onL
 
       {/* Expanded photo grid */}
       {open && (
-        <div className="mt-1 grid grid-cols-3 gap-0.5 rounded-b-xl overflow-hidden">
+        <div className="mt-0.5 grid grid-cols-3 gap-0.5 rounded-b-2xl overflow-hidden border-x-2 border-b-2 border-purple-primary/30">
           {section.photos.map((photo) => (
             <PhotoThumbnail
               key={photo.id}

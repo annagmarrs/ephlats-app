@@ -46,7 +46,7 @@ export function ChatListItem({ chat, currentUserId }: Props) {
   return (
     <Link
       href={`/chat/${chat.id}`}
-      className="flex items-center gap-3 p-3 bg-purple-light rounded-2xl border border-purple-primary/10 hover:border-purple-primary/30 transition-colors min-h-[64px]"
+      className="flex items-center gap-3 p-3 bg-gold-light rounded-2xl border border-gold-primary/30 hover:border-gold-primary/60 transition-colors min-h-[64px]"
     >
       <div className="relative flex-shrink-0">
         <Avatar name={displayName} photoUrl={photoUrl} size="md" />

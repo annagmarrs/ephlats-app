@@ -110,28 +110,28 @@ export default function GalleryPage() {
 
   const handleReact = async (photoId: string, emoji: string) => {
     if (!user) return;
-    setSections((prev) => prev.map((s) => ({
-      ...s,
-      photos: s.photos.map((p) => {
-        if (p.id !== photoId) return p;
-        const hasReacted = (p.reactions[emoji] || []).includes(user.uid);
-        return {
-          ...p,
-          reactions: {
-            ...p.reactions,
-            [emoji]: hasReacted
-              ? (p.reactions[emoji] || []).filter((id) => id !== user.uid)
-              : [...(p.reactions[emoji] || []), user.uid],
-          },
-        };
-      }),
-    })));
     const section = sections.find((s) => s.photos.some((p) => p.id === photoId));
     const photo = section?.photos.find((p) => p.id === photoId);
-    if (photo) {
-      const hasReacted = (photo.reactions[emoji] || []).includes(user.uid);
-      await togglePhotoReaction(photoId, emoji, user.uid, hasReacted);
-    }
+    if (!photo) return;
+    const hasReacted = (photo.reactions[emoji] || []).includes(user.uid);
+    const updatedReactions = {
+      ...photo.reactions,
+      [emoji]: hasReacted
+        ? (photo.reactions[emoji] || []).filter((id) => id !== user.uid)
+        : [...(photo.reactions[emoji] || []), user.uid],
+    };
+    const updatedPhoto = { ...photo, reactions: updatedReactions };
+    // Optimistic update both sections and viewer
+    setSections((prev) => prev.map((s) => ({
+      ...s,
+      photos: s.photos.map((p) => p.id === photoId ? updatedPhoto : p),
+    })));
+    setViewerPhoto((prev) => prev ? {
+      ...prev,
+      photo: prev.photo.id === photoId ? updatedPhoto : prev.photo,
+      photos: prev.photos.map((p) => p.id === photoId ? updatedPhoto : p),
+    } : null);
+    await togglePhotoReaction(photoId, emoji, user.uid, hasReacted);
   };
 
   const handleDelete = async (photo: Photo) => {
@@ -178,27 +178,26 @@ export default function GalleryPage() {
 
   return (
     <>
-      <TopHeader
-        title="Gallery"
-        rightElement={
-          <div className="flex gap-2">
-            <button
-              onClick={() => { setSelecting(!selecting); setSelectedIds(new Set()); }}
-              className="p-2 rounded-xl hover:bg-neutral-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label="Select photos"
-            >
-              <DownloadCloud className="w-5 h-5 text-neutral-600" />
-            </button>
-            <button
-              onClick={() => router.push('/gallery/upload')}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gold-primary text-neutral-900 rounded-xl text-sm font-semibold min-h-[44px]"
-            >
-              <Upload className="w-4 h-4" />
-              Upload
-            </button>
-          </div>
-        }
-      />
+      <TopHeader title="Gallery" />
+      {/* Subheader with actions */}
+      <div className="bg-purple-light border-b border-purple-primary/15 px-4 py-2 flex items-center justify-between max-w-lg mx-auto w-full">
+        <button
+          onClick={() => { setSelecting(!selecting); setSelectedIds(new Set()); }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold min-h-[36px] transition-colors
+            ${selecting ? 'bg-purple-primary text-white' : 'text-purple-dark hover:bg-purple-primary/10'}`}
+          aria-label="Select to download"
+        >
+          <DownloadCloud className="w-4 h-4" />
+          {selecting ? 'Cancel' : 'Download'}
+        </button>
+        <button
+          onClick={() => router.push('/gallery/upload')}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-gold-primary text-neutral-900 rounded-xl text-sm font-semibold min-h-[36px]"
+        >
+          <Upload className="w-4 h-4" />
+          Upload
+        </button>
+      </div>
 
       <div className="pb-4">
         {loadingPhotos ? (
@@ -216,17 +215,19 @@ export default function GalleryPage() {
           </div>
         ) : (
           <>
-            {sections.map((section) => (
-              <PhotoGrid
-                key={section.event.id}
-                section={section}
-                selecting={selecting}
-                selectedIds={selectedIds}
-                onToggleSelect={toggleSelect}
-                onLoadMore={() => {}}
-                onOpenViewer={(photo) => setViewerPhoto({ photo, photos: section.photos })}
-              />
-            ))}
+            <div className="grid grid-cols-2 gap-3 px-4">
+              {sections.map((section) => (
+                <PhotoGrid
+                  key={section.event.id}
+                  section={section}
+                  selecting={selecting}
+                  selectedIds={selectedIds}
+                  onToggleSelect={toggleSelect}
+                  onLoadMore={() => {}}
+                  onOpenViewer={(photo) => setViewerPhoto({ photo, photos: section.photos })}
+                />
+              ))}
+            </div>
             {hasMore && (
               <div className="flex justify-center py-4">
                 <Button variant="secondary" onClick={handleLoadMore}>Load more photos</Button>

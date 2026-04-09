@@ -101,17 +101,17 @@ export function PhotoViewer({ photo: initialPhoto, photos, currentUserId, canDel
       </div>
 
       {/* Bottom bar */}
-      <div className="bg-black/80 px-4 py-4 flex-shrink-0 pb-[env(safe-area-inset-bottom)]">
-        <div className="flex items-center gap-2 mb-3">
-          <p className="text-white text-sm font-medium">{photo.uploaderName}</p>
-          <span className="text-neutral-500 text-xs">· {photo.eventTitle}</span>
-          <span className="text-neutral-500 text-xs ml-auto">{timeAgo(photo.uploadedAt)}</span>
-        </div>
+      <div className="bg-black/80 px-4 pt-3 pb-4 flex-shrink-0 pb-[env(safe-area-inset-bottom)]">
         <EmojiReactions
           reactions={photo.reactions}
           currentUserId={currentUserId}
           onReact={(emoji) => onReact(photo.id, emoji)}
         />
+        <div className="flex items-center gap-2 mt-2.5">
+          <p className="text-white text-sm font-medium">{photo.uploaderName}</p>
+          <span className="text-neutral-500 text-xs">· {photo.eventTitle}</span>
+          <span className="text-neutral-500 text-xs ml-auto">{timeAgo(photo.uploadedAt)}</span>
+        </div>
       </div>
     </div>
   );
