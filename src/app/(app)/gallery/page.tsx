@@ -82,7 +82,7 @@ export default function GalleryPage() {
       const eventPhotos = byEvent[eventId];
       const event = evts.find((e) => e.id === eventId) || {
         id: eventId,
-        title: 'Event',
+        title: eventPhotos[0]?.eventTitle || 'Event',
         date: '',
         startTime: '',
         endTime: '',

@@ -30,36 +30,85 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+function AlbumCover({ photos }: { photos: Photo[] }) {
+  const covers = photos.slice(0, 4);
+  if (covers.length === 1) {
+    return (
+      <div className="relative w-full h-full">
+        <Image src={covers[0].thumbnailUrl || covers[0].photoUrl} alt="" fill className="object-cover" sizes="160px" />
+      </div>
+    );
+  }
+  if (covers.length === 2 || covers.length === 3) {
+    return (
+      <div className="grid grid-cols-2 w-full h-full gap-0.5">
+        {covers.slice(0, 2).map((p, i) => (
+          <div key={i} className="relative">
+            <Image src={p.thumbnailUrl || p.photoUrl} alt="" fill className="object-cover" sizes="80px" />
+          </div>
+        ))}
+        {covers.length === 3 && (
+          <div className="relative col-span-2" style={{ height: '50%', position: 'relative' }}>
+            <Image src={covers[2].thumbnailUrl || covers[2].photoUrl} alt="" fill className="object-cover" sizes="160px" />
+          </div>
+        )}
+      </div>
+    );
+  }
+  // 4 photos — 2x2 grid
+  return (
+    <div className="grid grid-cols-2 w-full h-full gap-0.5">
+      {covers.map((p, i) => (
+        <div key={i} className="relative aspect-square">
+          <Image src={p.thumbnailUrl || p.photoUrl} alt="" fill className="object-cover" sizes="80px" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function PhotoGrid({ section, selecting, selectedIds, onToggleSelect, onLoadMore, onOpenViewer }: Props) {
   const [open, setOpen] = useState(false);
+  // Use the title stored on the photos themselves (always accurate), fall back to event title
+  const albumTitle = section.photos[0]?.eventTitle || section.event.title;
 
   return (
-    <div className="border-b border-neutral-100 last:border-b-0">
-      {/* Accordion header */}
+    <div className="px-4 mb-4">
+      {/* Album card */}
       <button
-        className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors min-h-[56px]"
+        className="w-full text-left"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
-        <div className="text-left">
-          <p className="font-semibold text-neutral-900 text-sm">{section.event.title}</p>
-          {section.event.date && (
-            <p className="text-xs text-neutral-400 mt-0.5">{formatDate(section.event.date)}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs text-neutral-400 font-medium">
-            {section.count} photo{section.count !== 1 ? 's' : ''}
-          </span>
-          <ChevronDown
-            className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-          />
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-neutral-100 active:opacity-80 transition-opacity">
+          {/* Cover mosaic */}
+          <div className="relative w-full aspect-[4/3] bg-neutral-100 overflow-hidden">
+            <AlbumCover photos={section.photos} />
+            {/* Photo count badge */}
+            <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1">
+              <span className="text-white text-xs font-semibold">{section.count}</span>
+              <span className="text-white/80 text-xs">photo{section.count !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+
+          {/* Album footer */}
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-neutral-900 text-sm leading-tight">{albumTitle}</p>
+              {section.event.date && (
+                <p className="text-xs text-neutral-400 mt-0.5">{formatDate(section.event.date)}</p>
+              )}
+            </div>
+            <ChevronDown
+              className={`w-5 h-5 text-neutral-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            />
+          </div>
         </div>
       </button>
 
-      {/* Collapsible grid */}
+      {/* Expanded photo grid */}
       {open && (
-        <div className="grid grid-cols-3 gap-0.5 pb-1">
+        <div className="mt-1 grid grid-cols-3 gap-0.5 rounded-b-xl overflow-hidden">
           {section.photos.map((photo) => (
             <PhotoThumbnail
               key={photo.id}
