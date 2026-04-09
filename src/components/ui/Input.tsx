@@ -75,31 +75,34 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   placeholder?: string;
 }
 
-export function Select({ label, error, options, placeholder, className = '', id, ...props }: SelectProps) {
-  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+  function Select({ label, error, options, placeholder, className = '', id, ...props }, ref) {
+    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
-  return (
-    <div className="w-full">
-      {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-neutral-900 mb-1.5">
-          {label}
-        </label>
-      )}
-      <select
-        id={inputId}
-        className={`w-full border rounded-xl px-4 min-h-[48px] text-neutral-900
-          focus:outline-none focus:ring-2 focus:ring-purple-primary focus:border-transparent
-          transition-colors bg-white
-          ${error ? 'border-error focus:ring-error' : 'border-neutral-300'}
-          ${className}`}
-        {...props}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-      {error && <p className="mt-1 text-sm text-error">{error}</p>}
-    </div>
-  );
-}
+    return (
+      <div className="w-full">
+        {label && (
+          <label htmlFor={inputId} className="block text-sm font-medium text-neutral-900 mb-1.5">
+            {label}
+          </label>
+        )}
+        <select
+          ref={ref}
+          id={inputId}
+          className={`w-full border rounded-xl px-4 min-h-[48px] text-neutral-900
+            focus:outline-none focus:ring-2 focus:ring-purple-primary focus:border-transparent
+            transition-colors bg-white
+            ${error ? 'border-error focus:ring-error' : 'border-neutral-300'}
+            ${className}`}
+          {...props}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        {error && <p className="mt-1 text-sm text-error">{error}</p>}
+      </div>
+    );
+  }
+);

@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 
 const ADMIN_LINKS = [
   { href: '/admin/announcements', label: 'Announcements' },
@@ -19,6 +20,13 @@ export function AdminNav() {
   return (
     <nav className="bg-purple-dark text-white px-4 py-3">
       <div className="max-w-5xl mx-auto flex items-center gap-1 overflow-x-auto">
+        <Link
+          href="/home"
+          className="flex items-center gap-1.5 text-purple-200 hover:text-white text-sm font-medium mr-3 whitespace-nowrap min-h-[36px]"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          App
+        </Link>
         <span className="text-sm font-bold text-gold-primary mr-4 whitespace-nowrap">Admin</span>
         {ADMIN_LINKS.map(({ href, label }) => {
           const active = pathname === href;
