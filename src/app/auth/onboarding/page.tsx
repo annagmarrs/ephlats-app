@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { joinEraGroupChat } from '@/lib/firestore';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
@@ -53,15 +53,21 @@ export default function OnboardingPage() {
   const finish = async () => {
     if (!firebaseUser) return;
     const userRef = doc(db, 'users', firebaseUser.uid);
-    await updateDoc(userRef, {
+    await setDoc(userRef, {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email || '',
       name: data.name,
       graduationYear: data.graduationYear,
       era: data.era,
       location: data.location,
       profilePhotoUrl: data.profilePhotoUrl,
+      isAdmin: false,
       onboarded: true,
+      fcmToken: null,
+      preloadedAttendeeId: null,
+      notificationSettings: { announcements: true, dms: true, groupChats: true },
       lastActiveAt: serverTimestamp(),
-    });
+    }, { merge: true });
     await joinEraGroupChat(data.era, firebaseUser.uid);
     router.replace('/home');
   };

@@ -26,7 +26,6 @@ export function StepName({ initialName, onNext }: { initialName: string; onNext:
       <form onSubmit={handleSubmit((d) => onNext(d.name))} className="flex flex-col gap-4">
         <Input
           label="Full Name"
-          autoFocus
           autoComplete="name"
           placeholder="Jane Smith"
           error={errors.name?.message}
