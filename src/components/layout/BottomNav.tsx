@@ -17,7 +17,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-neutral-200 pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-purple-dark pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-stretch max-w-lg mx-auto h-16">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
@@ -26,7 +26,7 @@ export function BottomNav() {
               key={href}
               href={href}
               className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors min-h-[64px]
-                ${active ? 'text-purple-primary' : 'text-neutral-400 hover:text-neutral-600'}`}
+                ${active ? 'text-gold-primary' : 'text-white/50 hover:text-white/80'}`}
               aria-label={label}
             >
               <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 2} />

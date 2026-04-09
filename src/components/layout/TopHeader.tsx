@@ -21,15 +21,15 @@ export function TopHeader({ title, showBack = false, backHref, rightElement, log
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white border-b border-neutral-200 pt-[env(safe-area-inset-top)]">
+    <header className={`sticky top-0 z-30 border-b pt-[env(safe-area-inset-top)] ${logo ? 'bg-white border-neutral-200' : 'bg-purple-light border-purple-primary/15'}`}>
       <div className="flex items-center h-14 px-4 max-w-lg mx-auto gap-2">
         {showBack && (
           <button
             onClick={handleBack}
-            className="p-2 -ml-2 rounded-xl hover:bg-neutral-100 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className={`p-2 -ml-2 rounded-xl transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center ${logo ? 'hover:bg-neutral-100' : 'hover:bg-purple-primary/10'}`}
             aria-label="Go back"
           >
-            <ChevronLeft className="w-5 h-5 text-neutral-700" />
+            <ChevronLeft className={`w-5 h-5 ${logo ? 'text-neutral-700' : 'text-purple-dark'}`} />
           </button>
         )}
 
@@ -41,7 +41,7 @@ export function TopHeader({ title, showBack = false, backHref, rightElement, log
             </div>
           </div>
         ) : (
-          <h1 className="flex-1 text-lg font-bold text-neutral-900 truncate text-center">{title}</h1>
+          <h1 className="flex-1 text-lg font-bold text-purple-dark truncate text-center">{title}</h1>
         )}
 
         {rightElement ? (

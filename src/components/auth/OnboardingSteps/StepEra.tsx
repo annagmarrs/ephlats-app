@@ -16,7 +16,7 @@ const schema = z.object({
     .int()
     .min(1960, 'Year must be 1960 or later')
     .max(2026, 'Year must be 2026 or earlier'),
-  era: z.enum(['60s', '70s', '80s', '90s', '00s', '10s', '20s'] as const),
+  era: z.enum(['60s', '70s', '80s', '90s', '00s', '10s', '20s', 'Current Group'] as const),
 });
 
 interface Props {
@@ -62,7 +62,7 @@ export function StepEra({ initialYear, initialEra, onNext, onBack }: Props) {
         <Select
           label="Era"
           error={errors.era?.message}
-          options={ERA_OPTIONS.map((e) => ({ value: e, label: `${e} Ephlat` }))}
+          options={ERA_OPTIONS.map((e) => ({ value: e, label: e === 'Current Group' ? 'Current Group' : `${e} Ephlat` }))}
           {...register('era')}
         />
         <div className="flex gap-3 mt-2">

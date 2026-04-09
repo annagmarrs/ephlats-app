@@ -16,7 +16,7 @@ function timeAgo(timestamp: any): string {
 
 export function AnnouncementCard({ announcement }: { announcement: Announcement }) {
   return (
-    <Card>
+    <div className="bg-gold-light border border-gold-primary/30 rounded-2xl p-4">
       <div className="flex items-start justify-between gap-2 mb-1">
         <h3 className="font-bold text-neutral-900 leading-snug flex-1">{announcement.title}</h3>
         <span className="text-xs text-neutral-400 whitespace-nowrap flex-shrink-0 mt-0.5">
@@ -32,6 +32,6 @@ export function AnnouncementCard({ announcement }: { announcement: Announcement 
           View Event →
         </Link>
       )}
-    </Card>
+    </div>
   );
 }

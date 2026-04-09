@@ -10,12 +10,12 @@ export function EraFilter({ selected, onChange }: Props) {
   const options: (Era | 'All')[] = ['All', ...ERA_OPTIONS];
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+    <div className="flex flex-wrap gap-1.5">
       {options.map((era) => (
         <button
           key={era}
           onClick={() => onChange(era)}
-          className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors min-h-[36px]
+          className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-colors min-h-[36px]
             ${selected === era
               ? 'bg-purple-primary text-white'
               : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
