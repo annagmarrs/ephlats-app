@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef, memo } from 'react';
+import { useState, memo } from 'react';
 import Image from 'next/image';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ChevronDown } from 'lucide-react';
 import type { Photo, ScheduleEvent } from '@/lib/types';
 import { QueryDocumentSnapshot } from 'firebase/firestore';
 
@@ -24,41 +24,52 @@ interface Props {
   onOpenViewer: (photo: Photo) => void;
 }
 
-export function PhotoGrid({ section, selecting, selectedIds, onToggleSelect, onLoadMore, onOpenViewer }: Props) {
-  const sentinelRef = useRef<HTMLDivElement>(null);
+function formatDate(dateStr: string): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
 
-  useEffect(() => {
-    if (!section.hasMore) return;
-    const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) onLoadMore(); },
-      { threshold: 0.1 }
-    );
-    if (sentinelRef.current) observer.observe(sentinelRef.current);
-    return () => observer.disconnect();
-  }, [section.hasMore, onLoadMore]);
+export function PhotoGrid({ section, selecting, selectedIds, onToggleSelect, onLoadMore, onOpenViewer }: Props) {
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="mb-6">
-      <div className="px-4 py-2 flex items-center justify-between">
-        <h3 className="font-bold text-neutral-900 text-sm">{section.event.title}</h3>
-        <span className="text-xs text-neutral-400">{section.count} photos</span>
-      </div>
-      <div className="grid grid-cols-3 gap-0.5">
-        {section.photos.map((photo) => (
-          <PhotoThumbnail
-            key={photo.id}
-            photo={photo}
-            selecting={selecting}
-            selected={selectedIds.has(photo.id)}
-            onToggleSelect={onToggleSelect}
-            onOpen={onOpenViewer}
+    <div className="border-b border-neutral-100 last:border-b-0">
+      {/* Accordion header */}
+      <button
+        className="w-full px-4 py-3.5 flex items-center justify-between hover:bg-neutral-50 transition-colors min-h-[56px]"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+      >
+        <div className="text-left">
+          <p className="font-semibold text-neutral-900 text-sm">{section.event.title}</p>
+          {section.event.date && (
+            <p className="text-xs text-neutral-400 mt-0.5">{formatDate(section.event.date)}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-xs text-neutral-400 font-medium">
+            {section.count} photo{section.count !== 1 ? 's' : ''}
+          </span>
+          <ChevronDown
+            className={`w-4 h-4 text-neutral-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
           />
-        ))}
-      </div>
-      {section.hasMore && <div ref={sentinelRef} className="h-4" />}
-      {section.loading && (
-        <div className="flex justify-center py-3">
-          <LoadingSpinner size="sm" />
+        </div>
+      </button>
+
+      {/* Collapsible grid */}
+      {open && (
+        <div className="grid grid-cols-3 gap-0.5 pb-1">
+          {section.photos.map((photo) => (
+            <PhotoThumbnail
+              key={photo.id}
+              photo={photo}
+              selecting={selecting}
+              selected={selectedIds.has(photo.id)}
+              onToggleSelect={onToggleSelect}
+              onOpen={onOpenViewer}
+            />
+          ))}
         </div>
       )}
     </div>

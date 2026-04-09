@@ -13,7 +13,7 @@ import { PhotoGrid } from '@/components/gallery/PhotoGrid';
 import { PhotoViewer } from '@/components/gallery/PhotoViewer';
 import { BulkSelectBar } from '@/components/gallery/BulkSelectBar';
 import { Button } from '@/components/ui/Button';
-import { Upload, CheckSquare } from 'lucide-react';
+import { Upload, DownloadCloud } from 'lucide-react';
 import type { Photo, ScheduleEvent } from '@/lib/types';
 
 interface EventSection {
@@ -187,7 +187,7 @@ export default function GalleryPage() {
               className="p-2 rounded-xl hover:bg-neutral-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Select photos"
             >
-              <CheckSquare className="w-5 h-5 text-neutral-600" />
+              <DownloadCloud className="w-5 h-5 text-neutral-600" />
             </button>
             <button
               onClick={() => router.push('/gallery/upload')}
