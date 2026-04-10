@@ -109,7 +109,7 @@ export function InstallBanner() {
                   Add Ephlats 2026 to your home screen
                 </p>
                 <p className="text-sm text-neutral-700">
-                  This makes it feel and work like a real app — no browser needed once it's installed.
+                  This helps you access the app more easily during reunion weekend.
                 </p>
                 <div className="space-y-2 pt-0.5">
                   <Step n={1}>
@@ -165,7 +165,7 @@ export function InstallBanner() {
                   Add Ephlats 2026 to your home screen
                 </p>
                 <p className="text-sm text-neutral-700">
-                  This makes it feel and work like a real app — no browser needed once it's installed.
+                  This helps you access the app more easily during reunion weekend.
                 </p>
                 {deferredPromptRef.current ? (
                   <>
