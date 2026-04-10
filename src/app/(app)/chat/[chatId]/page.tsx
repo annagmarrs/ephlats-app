@@ -23,12 +23,6 @@ export default function ChatThreadPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Lock body scroll while chat thread is open (like a modal)
-  useEffect(() => {
-    document.body.classList.add('modal-open');
-    return () => document.body.classList.remove('modal-open');
-  }, []);
-
   useEffect(() => {
     getDoc(doc(db, 'chats', chatId)).then((snap) => {
       if (snap.exists()) setChat({ id: snap.id, ...snap.data() } as Chat);
@@ -75,7 +69,7 @@ export default function ChatThreadPage() {
 
   return (
     <div
-      className="relative z-50 flex flex-col bg-white overflow-hidden"
+      className="fixed inset-0 z-50 flex flex-col bg-white"
       style={{ height: '100dvh' }}
     >
       {/* Header */}
@@ -146,7 +140,7 @@ export default function ChatThreadPage() {
             }}
             placeholder="Type a message…"
             rows={1}
-            className="flex-1 min-w-0 resize-none border border-neutral-300 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[40px] max-h-24 bg-white"
+            className="flex-1 min-w-0 resize-none border border-neutral-300 rounded-2xl px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[40px] max-h-24 bg-white"
           />
           <button
             onClick={handleSend}

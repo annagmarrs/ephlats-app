@@ -20,7 +20,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
-          className={`w-full border rounded-xl px-4 min-h-[48px] text-neutral-900 placeholder-neutral-400
+          className={`w-full border rounded-xl px-4 min-h-[48px] text-base text-neutral-900 placeholder-neutral-400
             focus:outline-none focus:ring-2 focus:ring-purple-primary focus:border-transparent
             transition-colors
             ${error ? 'border-error focus:ring-error' : 'border-neutral-300'}
@@ -54,7 +54,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           id={inputId}
-          className={`w-full border rounded-xl px-4 py-3 text-neutral-900 placeholder-neutral-400
+          className={`w-full border rounded-xl px-4 py-3 text-base text-neutral-900 placeholder-neutral-400
             focus:outline-none focus:ring-2 focus:ring-purple-primary focus:border-transparent
             transition-colors resize-none
             ${error ? 'border-error focus:ring-error' : 'border-neutral-300'}
@@ -89,7 +89,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           id={inputId}
-          className={`w-full border rounded-xl px-4 min-h-[48px] text-neutral-900
+          className={`w-full border rounded-xl px-4 min-h-[48px] text-base text-neutral-900
             focus:outline-none focus:ring-2 focus:ring-purple-primary focus:border-transparent
             transition-colors bg-white
             ${error ? 'border-error focus:ring-error' : 'border-neutral-300'}

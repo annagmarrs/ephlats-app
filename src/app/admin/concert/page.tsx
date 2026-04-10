@@ -222,7 +222,7 @@ function ProgramRow({ entry, idx, total, onDelete, onMoveUp, onMoveDown }: {
             <select
               value={editType}
               onChange={(e) => setEditType(e.target.value as ConcertEntryType)}
-              className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary"
+              className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-purple-primary"
             >
               {(Object.entries(TYPE_LABELS) as [ConcertEntryType, string][]).map(([v, l]) => (
                 <option key={v} value={v}>{l}</option>
@@ -234,7 +234,7 @@ function ProgramRow({ entry, idx, total, onDelete, onMoveUp, onMoveDown }: {
             <input
               value={editLabel}
               onChange={(e) => setEditLabel(e.target.value)}
-              className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary"
+              className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-purple-primary"
             />
           </div>
         </div>
@@ -246,7 +246,7 @@ function ProgramRow({ entry, idx, total, onDelete, onMoveUp, onMoveDown }: {
                 value={editSongs}
                 onChange={(e) => setEditSongs(e.target.value)}
                 rows={3}
-                className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary resize-none"
+                className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-purple-primary resize-none"
               />
             </div>
             <div>
@@ -255,7 +255,7 @@ function ProgramRow({ entry, idx, total, onDelete, onMoveUp, onMoveDown }: {
                 value={editSoloists}
                 onChange={(e) => setEditSoloists(e.target.value)}
                 rows={2}
-                className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary resize-none"
+                className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-purple-primary resize-none"
               />
             </div>
           </>
@@ -265,7 +265,7 @@ function ProgramRow({ entry, idx, total, onDelete, onMoveUp, onMoveDown }: {
           <input
             value={editNotes}
             onChange={(e) => setEditNotes(e.target.value)}
-            className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary"
+            className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-base focus:outline-none focus:ring-2 focus:ring-purple-primary"
           />
         </div>
         <div className="flex gap-2 pt-1">

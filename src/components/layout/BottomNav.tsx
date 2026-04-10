@@ -28,11 +28,8 @@ export function BottomNav() {
   if (hidden) return null;
 
   return (
-    <nav
-      className="fixed bottom-0 z-40 bg-purple-dark pb-[env(safe-area-inset-bottom)]"
-      style={{ left: 0, right: 0, maxWidth: '32rem', marginLeft: 'auto', marginRight: 'auto' }}
-    >
-      <div className="flex items-stretch h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-purple-dark pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-stretch max-w-lg mx-auto h-16">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
