@@ -53,7 +53,7 @@ export function MessageBubble({ message, isOwn, showSender, isFirst, isLast }: P
         )}
 
         {/* Bubble */}
-        <div className={`px-3 py-2 text-sm leading-snug break-words ${bubbleShape(isOwn, isFirst, isLast)}
+        <div className={`px-3 py-2 text-sm leading-snug break-words whitespace-pre-wrap ${bubbleShape(isOwn, isFirst, isLast)}
           ${isOwn
             ? 'bg-purple-primary text-white'
             : 'bg-white border border-neutral-200 text-neutral-900 shadow-sm'
