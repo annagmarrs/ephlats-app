@@ -25,12 +25,11 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load preloaded attendees with matching graduation year
+    // Load all unmatched attendees — name search is done client-side
     const loadCandidates = async () => {
       try {
         const q = query(
           collection(db, 'preloadedAttendees'),
-          where('graduationYear', '==', graduationYear),
           where('matched', '!=', true)
         );
         const snap = await getDocs(q);
@@ -44,7 +43,7 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
       }
     };
     loadCandidates();
-  }, [graduationYear]);
+  }, []);
 
   useEffect(() => {
     setResults(fuzzySearch(searchQuery, allCandidates).slice(0, 10));
@@ -83,7 +82,7 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
         <h2 className="text-2xl font-bold text-neutral-900">Is this you?</h2>
         <div className="bg-purple-light rounded-2xl p-5">
           <p className="text-lg font-bold text-purple-primary">{selected.name}</p>
-          <p className="text-neutral-600">{selected.era} era · Class of {selected.graduationYear}</p>
+          <p className="text-neutral-600">{selected.era} era{selected.graduationYear ? ` · Class of ${selected.graduationYear}` : ''}</p>
         </div>
         <div className="flex gap-3">
           <Button variant="secondary" onClick={() => setSelected(null)} fullWidth>Not me</Button>
@@ -121,7 +120,7 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
               className="w-full text-left bg-white border border-neutral-200 rounded-xl p-4 hover:border-purple-primary transition-colors min-h-[56px]"
             >
               <p className="font-semibold text-neutral-900">{r.name}</p>
-              <p className="text-sm text-neutral-500">Class of {r.graduationYear} · {r.era}</p>
+              <p className="text-sm text-neutral-500">{r.graduationYear ? `Class of ${r.graduationYear} · ` : ''}{r.era}</p>
             </button>
           ))}
         </div>
