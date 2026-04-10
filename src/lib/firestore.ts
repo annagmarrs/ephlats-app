@@ -263,7 +263,7 @@ export async function claimPreloadedAttendee(preloadedId: string, userId: string
   await batch.commit();
 }
 
-export async function batchImportAttendees(attendees: Array<{ name: string; graduationYear: number; era: string }>) {
+export async function batchImportAttendees(attendees: Array<{ name: string; graduationYear: number | null; era: string }>) {
   const batch = writeBatch(db);
   attendees.forEach((a) => {
     const ref = doc(collection(db, 'preloadedAttendees'));

@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 
 interface ParsedRow {
   name: string;
-  graduationYear: number;
+  graduationYear: number | null;
   era: string;
   valid: boolean;
   error?: string;
@@ -39,12 +39,14 @@ export default function AdminAttendeesPage() {
       complete: (result) => {
         const parsed = (result.data as any[]).map((row): ParsedRow => {
           const name = (row.name || '').trim();
-          const graduationYear = parseInt(row.graduationYear, 10);
+          const rawYear = (row.graduationYear || '').toString().trim();
+          const parsedYear = rawYear === '' ? null : parseInt(rawYear, 10);
+          const graduationYear = (parsedYear !== null && isNaN(parsedYear)) ? null : parsedYear;
           const era = (row.era || '').trim();
 
           if (!name) return { name, graduationYear, era, valid: false, error: 'Name is required' };
-          if (isNaN(graduationYear) || graduationYear < 1960 || graduationYear > 2026) {
-            return { name, graduationYear, era, valid: false, error: 'Year must be 1960–2026' };
+          if (graduationYear !== null && (graduationYear < 1960)) {
+            return { name, graduationYear, era, valid: false, error: 'Year must be 1960 or later' };
           }
           if (!ERA_OPTIONS.includes(era as any)) {
             return { name, graduationYear, era, valid: false, error: `Era must be one of: ${ERA_OPTIONS.join(', ')}` };
@@ -84,13 +86,15 @@ export default function AdminAttendeesPage() {
         <h2 className="font-bold text-neutral-900">Import from CSV</h2>
         <p className="text-sm text-neutral-600">
           Upload a CSV with three columns: <code className="bg-neutral-100 px-1 rounded">name</code>,{' '}
-          <code className="bg-neutral-100 px-1 rounded">graduationYear</code>,{' '}
+          <code className="bg-neutral-100 px-1 rounded">graduationYear</code> (optional — leave blank for guests),{' '}
           <code className="bg-neutral-100 px-1 rounded">era</code> — no email addresses needed or accepted.
+          Years must be 1960 or later (no upper limit).
         </p>
         <div className="bg-neutral-50 rounded-xl p-3 text-xs font-mono text-neutral-600 border border-neutral-200">
           name,graduationYear,era<br />
           Jane Smith,1998,90s<br />
-          John Doe,1985,80s
+          John Doe,2028,20s<br />
+          Guest Speaker,,Guest
         </div>
 
         <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={handleFile} />
@@ -118,7 +122,7 @@ export default function AdminAttendeesPage() {
                   {rows.map((row, i) => (
                     <tr key={i} className={`border-t border-neutral-100 ${!row.valid ? 'bg-red-50' : ''}`}>
                       <td className="px-3 py-2">{row.name}</td>
-                      <td className="px-3 py-2">{row.graduationYear}</td>
+                      <td className="px-3 py-2">{row.graduationYear ?? '—'}</td>
                       <td className="px-3 py-2">{row.era}</td>
                       <td className="px-3 py-2">
                         {row.valid
@@ -158,7 +162,7 @@ export default function AdminAttendeesPage() {
                 {existing.map((a) => (
                   <tr key={a.id} className="border-t border-neutral-100">
                     <td className="px-3 py-2 font-medium">{a.name}</td>
-                    <td className="px-3 py-2 text-neutral-500">{a.graduationYear}</td>
+                    <td className="px-3 py-2 text-neutral-500">{a.graduationYear ?? '—'}</td>
                     <td className="px-3 py-2 text-neutral-500">{a.era}</td>
                     <td className="px-3 py-2">
                       {a.matched

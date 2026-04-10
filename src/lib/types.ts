@@ -39,7 +39,7 @@ export function graduationYearToEra(year: number): Era {
 export interface PreloadedAttendee {
   id: string;
   name: string;
-  graduationYear: number;
+  graduationYear: number | null;
   era: Era;
   matched?: boolean;
   userId?: string;
