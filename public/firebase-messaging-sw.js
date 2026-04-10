@@ -1,59 +1,31 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
 
-// Config is fetched from the API route on install
-let firebaseConfig = null;
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    fetch('/api/sw-config')
-      .then((res) => res.json())
-      .then((config) => {
-        firebaseConfig = config;
-        firebase.initializeApp(config);
-      })
-      .catch(() => {
-        // Fallback: will try to use cached config
-        console.warn('Could not fetch Firebase config for service worker');
-      })
-  );
+// Public config — safe to hardcode (same values as NEXT_PUBLIC_* env vars)
+firebase.initializeApp({
+  apiKey: 'AIzaSyAlhkEEGqa8HoWOII47VBTxEVA1LZ-k-v4',
+  authDomain: 'ephlats-2026.firebaseapp.com',
+  projectId: 'ephlats-2026',
+  storageBucket: 'ephlats-2026.firebasestorage.app',
+  messagingSenderId: '919804807357',
+  appId: '1:919804807357:web:b39710d7d212ce28820fd4',
 });
 
-// Initialize messaging after config is loaded
-let messaging = null;
+const messaging = firebase.messaging();
 
-self.addEventListener('activate', () => {
-  if (firebaseConfig && !messaging) {
-    try {
-      messaging = firebase.messaging();
-    } catch (e) {
-      console.warn('Firebase messaging init error:', e);
-    }
-  }
-});
-
-self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
-  let data;
-  try {
-    data = event.data.json();
-  } catch {
-    return;
-  }
-
-  const notification = data.notification || {};
+// Handle background push messages via the Firebase Messaging SDK
+messaging.onBackgroundMessage((payload) => {
+  const notification = payload.notification || {};
   const title = notification.title || 'Ephlats 2026';
   const body = notification.body || '';
+  const link = payload.fcmOptions?.link || '/home';
 
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-192x192.png',
-      data: { url: '/home' },
-    })
-  );
+  self.registration.showNotification(title, {
+    body,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    data: { url: link },
+  });
 });
 
 self.addEventListener('notificationclick', (event) => {
@@ -67,9 +39,7 @@ self.addEventListener('notificationclick', (event) => {
           return client.focus();
         }
       }
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
+      if (clients.openWindow) return clients.openWindow(url);
     })
   );
 });

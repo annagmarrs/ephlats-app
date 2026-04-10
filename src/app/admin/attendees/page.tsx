@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useRef } from 'react';
 import Papa from 'papaparse';
 import toast from 'react-hot-toast';
-import { batchImportAttendees, getPreloadedAttendees } from '@/lib/firestore';
+import { batchImportAttendees, getPreloadedAttendees, deletePreloadedAttendee } from '@/lib/firestore';
 import { Button } from '@/components/ui/Button';
-import { Upload } from 'lucide-react';
+import { Upload, Trash2 } from 'lucide-react';
 import { ERA_OPTIONS } from '@/lib/types';
 import type { PreloadedAttendee } from '@/lib/types';
 import { useEffect } from 'react';
@@ -72,6 +72,20 @@ export default function AdminAttendeesPage() {
       toast.error('Import failed.');
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleDelete = async (attendee: PreloadedAttendee) => {
+    const label = attendee.matched
+      ? `${attendee.name} has already claimed their account. Delete anyway?`
+      : `Delete ${attendee.name}?`;
+    if (!confirm(label)) return;
+    try {
+      await deletePreloadedAttendee(attendee.id);
+      setExisting((prev) => prev.filter((a) => a.id !== attendee.id));
+      toast.success('Attendee removed.');
+    } catch {
+      toast.error('Failed to delete.');
     }
   };
 
@@ -156,6 +170,7 @@ export default function AdminAttendeesPage() {
                   <th className="px-3 py-2 text-left font-semibold text-neutral-600">Year</th>
                   <th className="px-3 py-2 text-left font-semibold text-neutral-600">Era</th>
                   <th className="px-3 py-2 text-left font-semibold text-neutral-600">Status</th>
+                  <th className="px-3 py-2" />
                 </tr>
               </thead>
               <tbody>
@@ -169,6 +184,15 @@ export default function AdminAttendeesPage() {
                         ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Claimed</span>
                         : <span className="text-xs bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full">Not on app yet</span>
                       }
+                    </td>
+                    <td className="px-2 py-2">
+                      <button
+                        onClick={() => handleDelete(a)}
+                        className="text-neutral-300 hover:text-red-500 transition-colors p-1"
+                        aria-label={`Delete ${a.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))}

@@ -8,10 +8,11 @@ import toast from 'react-hot-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useSchedule } from '@/hooks/useSchedule';
-import { createAnnouncement, updateAnnouncementPushSent } from '@/lib/firestore';
+import { createAnnouncement, updateAnnouncementPushSent, deleteAnnouncement } from '@/lib/firestore';
 import { Input, Textarea, Select } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Trash2 } from 'lucide-react';
 
 const schema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -65,6 +66,16 @@ export default function AdminAnnouncementsPage() {
   };
 
   const eventOptions = events.map((e) => ({ value: e.id, label: e.title }));
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this announcement? It will be removed from the feed.')) return;
+    try {
+      await deleteAnnouncement(id);
+      toast.success('Announcement deleted.');
+    } catch {
+      toast.error('Failed to delete.');
+    }
+  };
 
   function timeAgo(ts: any): string {
     if (!ts) return '';
@@ -122,11 +133,18 @@ export default function AdminAnnouncementsPage() {
               <Card key={a.id}>
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-semibold text-sm text-neutral-900">{a.title}</p>
-                  <div className="flex gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     {a.sentAsPush && (
                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Push sent</span>
                     )}
                     <span className="text-xs text-neutral-400">{timeAgo(a.createdAt)}</span>
+                    <button
+                      onClick={() => handleDelete(a.id)}
+                      className="text-neutral-300 hover:text-red-500 transition-colors ml-1 p-1"
+                      aria-label="Delete announcement"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
                 <p className="text-sm text-neutral-600 mt-1 line-clamp-2">{a.body}</p>

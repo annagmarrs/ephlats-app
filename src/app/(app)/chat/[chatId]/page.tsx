@@ -23,6 +23,12 @@ export default function ChatThreadPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // Lock body scroll while chat thread is open (like a modal)
+  useEffect(() => {
+    document.body.classList.add('modal-open');
+    return () => document.body.classList.remove('modal-open');
+  }, []);
+
   useEffect(() => {
     getDoc(doc(db, 'chats', chatId)).then((snap) => {
       if (snap.exists()) setChat({ id: snap.id, ...snap.data() } as Chat);
@@ -69,21 +75,12 @@ export default function ChatThreadPage() {
 
   return (
     <div
-      className="fixed z-50 flex flex-col bg-white"
-      style={{
-        top: 0,
-        left: 0,
-        right: 0,
-        maxWidth: '32rem',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        height: '100dvh',
-      }}
+      className="relative z-50 flex flex-col bg-white overflow-hidden"
+      style={{ height: '100dvh' }}
     >
-      {/* ── Header ── inlined to avoid TopHeader's sticky, which misbehaves
-           inside a fixed container on iOS Safari */}
+      {/* Header */}
       <div className="flex-shrink-0 bg-purple-light border-b border-purple-primary/15 pt-[env(safe-area-inset-top)]">
-        <div className="flex items-center h-14 px-2 gap-1 max-w-lg mx-auto">
+        <div className="flex items-center h-14 px-2 gap-1">
           <button
             onClick={() => router.push('/chat')}
             className="p-2 rounded-xl hover:bg-purple-primary/10 min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
@@ -94,19 +91,17 @@ export default function ChatThreadPage() {
           <h1 className="flex-1 text-center font-bold text-purple-dark text-lg truncate px-1">
             {chatName}
           </h1>
-          {/* Balancing spacer so title is truly centered */}
           <div className="w-11 flex-shrink-0" />
         </div>
       </div>
 
-      {/* ── Messages ── flex-1 + min-h-0 is required so this area can shrink
-           below its content height and not overflow the container */}
+      {/* Messages */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pt-3 pb-1 bg-neutral-50">
         {loading ? (
           <PageLoader />
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-neutral-400 text-sm">
-            <p>No messages yet. Say hello! 👋</p>
+            <p>No messages yet. Say hello!</p>
           </div>
         ) : (
           <>
@@ -129,16 +124,9 @@ export default function ChatThreadPage() {
         )}
       </div>
 
-      {/* ── Input bar ── flex-shrink-0 keeps it pinned to bottom of container.
-           env(safe-area-inset-bottom) adds iPhone home-indicator clearance.
-           When keyboard is open, visualViewport shrinks the container so this
-           bar naturally sits just above the keyboard — no extra positioning needed. */}
-      <div
-        className="flex-shrink-0 bg-white border-t border-neutral-200 px-3 pt-1.5"
-        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
-      >
-        <div className="flex items-end gap-2 w-full">
-          {/* min-w-0 prevents the textarea from overflowing its flex container */}
+      {/* Input bar */}
+      <div className="flex-shrink-0 bg-white border-t border-neutral-200 px-3 py-2 pb-safe">
+        <div className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
             value={text}

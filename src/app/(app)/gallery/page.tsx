@@ -160,16 +160,17 @@ export default function GalleryPage() {
   const handleBulkDownload = async () => {
     const allPhotos = sections.flatMap((s) => s.photos);
     const selected = allPhotos.filter((p) => selectedIds.has(p.id));
-    await Promise.all(selected.map(async (photo) => {
-      const res = await fetch(photo.photoUrl);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+    for (const photo of selected) {
+      const filename = `ephlats-photo-${photo.id}.jpg`;
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `ephlats-photo-${photo.id}.jpg`;
+      a.href = `/api/download?url=${encodeURIComponent(photo.photoUrl)}&filename=${filename}`;
+      a.download = filename;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
-    }));
+      document.body.removeChild(a);
+      // Small gap between triggers so the browser queues each download cleanly
+      await new Promise((r) => setTimeout(r, 300));
+    }
     setSelecting(false);
     setSelectedIds(new Set());
   };

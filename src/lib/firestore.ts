@@ -39,6 +39,10 @@ export async function updateAnnouncementPushSent(id: string) {
   await updateDoc(doc(db, 'announcements', id), { sentAsPush: true, pushSentAt: serverTimestamp() });
 }
 
+export async function deleteAnnouncement(id: string) {
+  await deleteDoc(doc(db, 'announcements', id));
+}
+
 // ─── Schedule ───────────────────────────────────────────────────────────────
 
 export async function getScheduleEvents(): Promise<ScheduleEvent[]> {
@@ -276,4 +280,8 @@ export async function batchImportAttendees(attendees: Array<{ name: string; grad
     batch.set(ref, { ...a, matched: false });
   });
   await batch.commit();
+}
+
+export async function deletePreloadedAttendee(id: string) {
+  await deleteDoc(doc(db, 'preloadedAttendees', id));
 }

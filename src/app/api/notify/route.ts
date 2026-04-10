@@ -20,12 +20,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // Gather all FCM tokens
+    // Gather FCM tokens for users who have announcements notifications enabled
     const usersSnap = await adminDb.collection('users').get();
     const tokens: string[] = [];
     usersSnap.forEach((doc) => {
-      const token = doc.data().fcmToken;
-      if (token) tokens.push(token);
+      const data = doc.data();
+      const token = data.fcmToken;
+      const announcementsEnabled = data.notificationSettings?.announcements !== false;
+      if (token && announcementsEnabled) tokens.push(token);
     });
 
     if (tokens.length === 0) {

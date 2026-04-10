@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { subscribeToConcertProgram, createConcertEntry, updateConcertEntry, deleteConcertEntry } from '@/lib/firestore';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea, Select } from '@/components/ui/Input';
-import { Trash2, ChevronUp, ChevronDown, Plus } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown, Plus, Pencil, X, Check } from 'lucide-react';
 import type { ConcertProgramEntry, ConcertEntryType } from '@/lib/types';
 
 const schema = z.object({
@@ -173,6 +173,120 @@ function ProgramRow({ entry, idx, total, onDelete, onMoveUp, onMoveDown }: {
   onMoveUp: () => void;
   onMoveDown: () => void;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editLabel, setEditLabel] = useState(entry.label);
+  const [editType, setEditType] = useState<ConcertEntryType>(entry.type);
+  const [editSongs, setEditSongs] = useState(entry.songs.join('\n'));
+  const [editSoloists, setEditSoloists] = useState(entry.soloists.join('\n'));
+  const [editNotes, setEditNotes] = useState(entry.notes || '');
+
+  const handleSave = async () => {
+    if (!editLabel.trim()) return;
+    setSaving(true);
+    try {
+      await updateConcertEntry(entry.id, {
+        label: editLabel.trim(),
+        type: editType,
+        songs: editSongs.split('\n').map((s) => s.trim()).filter(Boolean),
+        soloists: editSoloists.split('\n').map((s) => s.trim()).filter(Boolean),
+        notes: editNotes.trim() || null,
+      });
+      setEditing(false);
+    } catch {
+      // leave editing open on error
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditLabel(entry.label);
+    setEditType(entry.type);
+    setEditSongs(entry.songs.join('\n'));
+    setEditSoloists(entry.soloists.join('\n'));
+    setEditNotes(entry.notes || '');
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="bg-white rounded-xl border border-purple-primary/30 p-4 space-y-3">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-sm font-bold text-neutral-400">#{idx + 1}</span>
+          <span className="text-sm font-semibold text-purple-primary">Editing</span>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-neutral-500 block mb-1">Type</label>
+            <select
+              value={editType}
+              onChange={(e) => setEditType(e.target.value as ConcertEntryType)}
+              className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary"
+            >
+              {(Object.entries(TYPE_LABELS) as [ConcertEntryType, string][]).map(([v, l]) => (
+                <option key={v} value={v}>{l}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-neutral-500 block mb-1">Label</label>
+            <input
+              value={editLabel}
+              onChange={(e) => setEditLabel(e.target.value)}
+              className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary"
+            />
+          </div>
+        </div>
+        {editType !== 'video' && (
+          <>
+            <div>
+              <label className="text-xs font-semibold text-neutral-500 block mb-1">Songs (one per line)</label>
+              <textarea
+                value={editSongs}
+                onChange={(e) => setEditSongs(e.target.value)}
+                rows={3}
+                className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary resize-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-neutral-500 block mb-1">Soloists (one per line)</label>
+              <textarea
+                value={editSoloists}
+                onChange={(e) => setEditSoloists(e.target.value)}
+                rows={2}
+                className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary resize-none"
+              />
+            </div>
+          </>
+        )}
+        <div>
+          <label className="text-xs font-semibold text-neutral-500 block mb-1">Notes (optional)</label>
+          <input
+            value={editNotes}
+            onChange={(e) => setEditNotes(e.target.value)}
+            className="w-full border border-neutral-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary"
+          />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={handleCancel}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-neutral-600 border border-neutral-200 hover:bg-neutral-50"
+          >
+            <X className="w-3.5 h-3.5" /> Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || !editLabel.trim()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-purple-primary text-white disabled:opacity-50"
+          >
+            <Check className="w-3.5 h-3.5" /> {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl border border-neutral-200 p-4 flex items-start gap-3">
       <div className="flex flex-col gap-1">
@@ -198,9 +312,14 @@ function ProgramRow({ entry, idx, total, onDelete, onMoveUp, onMoveDown }: {
           <p className="text-xs text-neutral-400 mt-0.5">Soloists: {entry.soloists.join(', ')}</p>
         )}
       </div>
-      <button onClick={onDelete} className="text-neutral-300 hover:text-error min-h-[44px] min-w-[44px] flex items-center justify-center">
-        <Trash2 className="w-4 h-4" />
-      </button>
+      <div className="flex items-center">
+        <button onClick={() => setEditing(true)} className="text-neutral-300 hover:text-purple-primary min-h-[44px] min-w-[44px] flex items-center justify-center">
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button onClick={onDelete} className="text-neutral-300 hover:text-error min-h-[44px] min-w-[44px] flex items-center justify-center">
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }

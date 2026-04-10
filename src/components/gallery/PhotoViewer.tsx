@@ -30,15 +30,14 @@ export function PhotoViewer({ photo: initialPhoto, photos, currentUserId, canDel
     return () => window.removeEventListener('keydown', handler);
   }, [photos.length, onClose]);
 
-  const handleDownload = async () => {
-    const res = await fetch(photo.photoUrl);
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
+  const handleDownload = () => {
+    const filename = `ephlats-photo-${photo.id}.jpg`;
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `ephlats-photo-${photo.id}.jpg`;
+    a.href = `/api/download?url=${encodeURIComponent(photo.photoUrl)}&filename=${filename}`;
+    a.download = filename;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   function timeAgo(ts: any): string {
