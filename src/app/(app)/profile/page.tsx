@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,7 +18,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { EraBadge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/Input';
-import { MapPin, GraduationCap, Bell, BellOff } from 'lucide-react';
+import { MapPin, GraduationCap, Bell, BellOff, Type } from 'lucide-react';
 import type { Era } from '@/lib/types';
 
 const schema = z.object({
@@ -38,6 +38,21 @@ export default function ProfilePage() {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [fontSize, setFontSize] = useState<string>('normal');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ephlats-font-size');
+    if (saved) setFontSize(saved);
+  }, []);
+
+  const applyFontSize = (key: string) => {
+    const map: Record<string, string> = {
+      normal: '100%', large: '112.5%', larger: '125%', largest: '137.5%',
+    };
+    document.documentElement.style.fontSize = map[key];
+    localStorage.setItem('ephlats-font-size', key);
+    setFontSize(key);
+  };
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -139,6 +154,41 @@ export default function ProfilePage() {
         {!editing && (
           <Button variant="secondary" fullWidth onClick={() => setEditing(true)}>Edit Profile</Button>
         )}
+
+        {/* Text Size */}
+        <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden">
+          <div className="px-4 py-3 border-b border-neutral-100 flex items-center gap-2">
+            <Type className="w-4 h-4 text-neutral-400" />
+            <h2 className="font-semibold text-neutral-900 text-sm">Text Size</h2>
+          </div>
+          <div className="px-4 py-4">
+            <div className="flex items-end gap-2">
+              {[
+                { key: 'normal',  label: 'A', size: 'text-base',  title: 'Default' },
+                { key: 'large',   label: 'A', size: 'text-lg',    title: 'Large' },
+                { key: 'larger',  label: 'A', size: 'text-xl',    title: 'Larger' },
+                { key: 'largest', label: 'A', size: 'text-2xl',   title: 'Largest' },
+              ].map(({ key, label, size, title }) => (
+                <button
+                  key={key}
+                  onClick={() => applyFontSize(key)}
+                  className={`flex-1 flex flex-col items-center gap-1 py-2 rounded-xl border-2 transition-colors min-h-[44px]
+                    ${fontSize === key
+                      ? 'border-purple-primary bg-purple-primary/5'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                    }`}
+                  aria-label={`Set text size to ${title}`}
+                  aria-pressed={fontSize === key}
+                >
+                  <span className={`${size} font-bold leading-none ${fontSize === key ? 'text-purple-primary' : 'text-neutral-500'}`}>
+                    {label}
+                  </span>
+                  <span className="text-[10px] text-neutral-400">{title}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
         {/* Notifications */}
         <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden">

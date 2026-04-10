@@ -35,6 +35,16 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
+      {/* Apply saved font size before first paint to avoid flash */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            var s = localStorage.getItem('ephlats-font-size');
+            var map = { normal: '100%', large: '112.5%', larger: '125%', largest: '137.5%' };
+            if (s && map[s]) document.documentElement.style.fontSize = map[s];
+          } catch(e) {}
+        `}} />
+      </head>
       <body>
         <AuthProvider>
           {children}
