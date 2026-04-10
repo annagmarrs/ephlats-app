@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { claimPreloadedAttendee } from '@/lib/firestore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { PreloadedAttendee } from '@/lib/types';
@@ -72,7 +71,12 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
     if (!selected) return;
     setConfirming(true);
     try {
-      await claimPreloadedAttendee(selected.id, userId);
+      const res = await fetch('/api/claim-attendee', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preloadedId: selected.id, userId }),
+      });
+      if (!res.ok) throw new Error('Failed to claim');
       onNext();
     } catch {
       setConfirming(false);
