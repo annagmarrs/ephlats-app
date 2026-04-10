@@ -126,7 +126,7 @@ export default function ChatThreadPage() {
 
       {/* ── Messages ── flex-1 + min-h-0 is required so this area can shrink
            below its content height and not overflow the container */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 bg-neutral-50">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 pt-3 pb-1 bg-neutral-50">
         {loading ? (
           <PageLoader />
         ) : messages.length === 0 ? (
@@ -149,7 +149,7 @@ export default function ChatThreadPage() {
                 />
               );
             })}
-            <div ref={bottomRef} className="h-2" />
+            <div ref={bottomRef} />
           </>
         )}
       </div>
@@ -158,10 +158,11 @@ export default function ChatThreadPage() {
            env(safe-area-inset-bottom) adds iPhone home-indicator clearance.
            When keyboard is open, visualViewport shrinks the container so this
            bar naturally sits just above the keyboard — no extra positioning needed. */}
-      <div className="flex-shrink-0 bg-white border-t border-neutral-200 px-3 py-2"
-        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
+      <div
+        className="flex-shrink-0 bg-white border-t border-neutral-200"
+        style={{ padding: '6px 12px', paddingBottom: 'max(6px, env(safe-area-inset-bottom))' }}
       >
-        <div className="flex items-end gap-2 max-w-lg mx-auto">
+        <div className="flex items-end gap-2 w-full">
           {/* min-w-0 prevents the textarea from overflowing its flex container */}
           <textarea
             ref={textareaRef}
