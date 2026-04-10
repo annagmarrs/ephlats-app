@@ -69,7 +69,7 @@ export default function ChatThreadPage() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-white"
+      className="fixed inset-x-0 top-0 z-50 flex flex-col bg-white"
       style={{ height: '100dvh' }}
     >
       {/* Header */}
