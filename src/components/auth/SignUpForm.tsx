@@ -41,11 +41,11 @@ export function SignUpForm({ onSwitchToSignin }: { onSwitchToSignin: () => void 
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      await signInWithGoogle();
-      router.replace('/auth/onboarding');
+      const result = await signInWithGoogle();
+      // result is null when redirect is used (PWA mode) — navigation handled by AuthContext
+      if (result) router.replace('/auth/onboarding');
     } catch (err: any) {
       toast.error(getAuthErrorMessage(err.code));
-    } finally {
       setGoogleLoading(false);
     }
   };

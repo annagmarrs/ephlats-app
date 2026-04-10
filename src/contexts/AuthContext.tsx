@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult, User as FirebaseUser } from 'firebase/auth';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { createUserDocument } from '@/lib/auth';
@@ -25,6 +25,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Consume any pending redirect result (Google sign-in from PWA standalone mode)
+    getRedirectResult(auth).catch(() => {});
+
     const unsubAuth = onAuthStateChanged(auth, async (fbUser) => {
       setFirebaseUser(fbUser);
       if (!fbUser) {

@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   sendPasswordResetEmail,
   sendEmailVerification,
@@ -26,6 +27,16 @@ export async function signInWithEmail(email: string, password: string) {
 }
 
 export async function signInWithGoogle() {
+  const isStandalone =
+    typeof window !== 'undefined' &&
+    ((window.navigator as any).standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches);
+
+  if (isStandalone) {
+    // signInWithRedirect navigates away — never returns
+    await signInWithRedirect(auth, googleProvider);
+    return null;
+  }
   const cred = await signInWithPopup(auth, googleProvider);
   return cred.user;
 }
