@@ -22,6 +22,7 @@ export interface OnboardingData {
   era: Era;
   location: string;
   profilePhotoUrl: string | null;
+  preloadedAttendeeId: string | null;
 }
 
 const TOTAL_STEPS = 6;
@@ -36,6 +37,7 @@ export default function OnboardingPage() {
     era: '90s',
     location: '',
     profilePhotoUrl: null,
+    preloadedAttendeeId: null,
   });
 
   useEffect(() => {
@@ -69,6 +71,13 @@ export default function OnboardingPage() {
       lastActiveAt: serverTimestamp(),
     }, { merge: true });
     await joinEraGroupChat(data.era, firebaseUser.uid);
+    if (data.preloadedAttendeeId) {
+      fetch('/api/claim-attendee', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preloadedId: data.preloadedAttendeeId, userId: firebaseUser.uid }),
+      }).catch(() => {});
+    }
     router.replace('/home');
   };
 
@@ -121,8 +130,7 @@ export default function OnboardingPage() {
             <StepIdentify
               name={data.name}
               graduationYear={data.graduationYear}
-              userId={firebaseUser.uid}
-              onNext={next}
+              onNext={(preloadedAttendeeId) => { updateData({ preloadedAttendeeId }); next(); }}
               onBack={back}
             />
           )}

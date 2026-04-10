@@ -10,17 +10,15 @@ import type { PreloadedAttendee } from '@/lib/types';
 interface Props {
   name: string;
   graduationYear: number | null;
-  userId: string;
-  onNext: () => void;
+  onNext: (preloadedAttendeeId: string | null) => void;
   onBack: () => void;
 }
 
-export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: Props) {
+export function StepIdentify({ name, graduationYear, onNext, onBack }: Props) {
   const [searchQuery, setSearchQuery] = useState(name.split(' ')[0] || '');
   const [allCandidates, setAllCandidates] = useState<PreloadedAttendee[]>([]);
   const [results, setResults] = useState<PreloadedAttendee[]>([]);
   const [selected, setSelected] = useState<PreloadedAttendee | null>(null);
-  const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -67,20 +65,9 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
       .sort((a, b) => b.score - a.score);
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (!selected) return;
-    setConfirming(true);
-    try {
-      const res = await fetch('/api/claim-attendee', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preloadedId: selected.id, userId }),
-      });
-      if (!res.ok) throw new Error('Failed to claim');
-      onNext();
-    } catch {
-      setConfirming(false);
-    }
+    onNext(selected.id);
   };
 
   if (selected) {
@@ -93,7 +80,7 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
         </div>
         <div className="flex gap-3">
           <Button variant="secondary" onClick={() => setSelected(null)} fullWidth>Not me</Button>
-          <Button onClick={handleConfirm} loading={confirming} fullWidth>Yes, that's me!</Button>
+          <Button onClick={handleConfirm} fullWidth>Yes, that's me!</Button>
         </div>
       </div>
     );
@@ -135,7 +122,7 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
 
       <div className="flex gap-3 mt-2">
         <Button type="button" variant="secondary" onClick={onBack} fullWidth>Back</Button>
-        <Button variant="ghost" onClick={onNext} fullWidth>
+        <Button variant="ghost" onClick={() => onNext(null)} fullWidth>
           I don't see myself
         </Button>
       </div>
