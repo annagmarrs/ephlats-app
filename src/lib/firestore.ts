@@ -153,11 +153,17 @@ export async function togglePhotoReaction(photoId: string, emoji: string, userId
 export function subscribeToUserChats(userId: string, callback: (chats: Chat[]) => void) {
   const q = query(
     collection(db, 'chats'),
-    where('participants', 'array-contains', userId),
-    orderBy('lastMessageAt', 'desc')
+    where('participants', 'array-contains', userId)
   );
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Chat)));
+    const chats = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Chat));
+    // Sort client-side so null lastMessageAt (new chats) are included
+    chats.sort((a, b) => {
+      const aMs = a.lastMessageAt?.toMillis?.() ?? 0;
+      const bMs = b.lastMessageAt?.toMillis?.() ?? 0;
+      return bMs - aMs;
+    });
+    callback(chats);
   });
 }
 

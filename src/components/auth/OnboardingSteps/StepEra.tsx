@@ -11,18 +11,17 @@ import { ERA_OPTIONS, graduationYearToEra } from '@/lib/types';
 import type { Era } from '@/lib/types';
 
 const schema = z.object({
-  graduationYear: z.coerce
-    .number()
-    .int()
-    .min(1960, 'Year must be 1960 or later')
-    .max(2026, 'Year must be 2026 or earlier'),
+  graduationYear: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number().int().min(1960, 'Year must be 1960 or later').optional()
+  ),
   era: z.enum(['60s', '70s', '80s', '90s', '00s', '10s', '20s', 'Current Group', 'Guest'] as const),
 });
 
 interface Props {
-  initialYear: number;
+  initialYear: number | null;
   initialEra: Era;
-  onNext: (year: number, era: Era) => void;
+  onNext: (year: number | null, era: Era) => void;
   onBack: () => void;
 }
 
@@ -48,7 +47,7 @@ export function StepEra({ initialYear, initialEra, onNext, onBack }: Props) {
         <p className="text-neutral-600 mt-1">We'll auto-suggest your era from your graduation year.</p>
       </div>
 
-      <form onSubmit={handleSubmit((d) => onNext(d.graduationYear, d.era as Era))} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit((d) => onNext(d.graduationYear ?? null, d.era as Era))} className="flex flex-col gap-4">
         <Input
           label="Graduation Year"
           type="number"

@@ -10,7 +10,7 @@ import type { PreloadedAttendee } from '@/lib/types';
 
 interface Props {
   name: string;
-  graduationYear: number;
+  graduationYear: number | null;
   userId: string;
   onNext: () => void;
   onBack: () => void;

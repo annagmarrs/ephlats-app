@@ -23,9 +23,12 @@ import type { Era } from '@/lib/types';
 
 const schema = z.object({
   name: z.string().min(2),
-  graduationYear: z.coerce.number().int().min(1960).max(2026),
+  graduationYear: z.preprocess(
+    (v) => (v === '' || v === null || v === undefined ? undefined : Number(v)),
+    z.number().int().min(1960, 'Year must be 1960 or later').optional()
+  ),
   era: z.enum(['60s', '70s', '80s', '90s', '00s', '10s', '20s', 'Current Group', 'Guest'] as const),
-  location: z.string().min(2),
+  location: z.string().optional().default(''),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,7 +43,7 @@ export default function ProfilePage() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: user?.name || '',
-      graduationYear: user?.graduationYear || 0,
+      graduationYear: user?.graduationYear ?? undefined,
       era: user?.era || '90s',
       location: user?.location || '',
     },

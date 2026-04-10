@@ -20,15 +20,15 @@ export default function ChatThreadPage() {
   const [chat, setChat] = useState<Chat | null>(null);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [containerHeight, setContainerHeight] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Track visual viewport height (shrinks when keyboard appears)
+  // Track visual viewport height so container shrinks when keyboard appears
   useEffect(() => {
     const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => setViewportHeight(vv.height);
+    if (!vv) { setContainerHeight(window.innerHeight); return; }
+    const update = () => setContainerHeight(vv.height);
     update();
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
@@ -85,42 +85,46 @@ export default function ChatThreadPage() {
     : 'Chat';
 
   return (
+    // Fixed overlay — breaks out of the app layout (pb-nav etc.) entirely
     <div
-      className="flex flex-col overflow-hidden bg-white"
-      style={{ height: viewportHeight ? `${viewportHeight}px` : '100dvh' }}
+      className="fixed inset-x-0 top-0 z-50 flex flex-col bg-white overflow-hidden"
+      style={{ height: containerHeight ? `${containerHeight}px` : '100dvh' }}
     >
+      {/* Sticky header */}
       <TopHeader title={chatName} showBack backHref="/chat" />
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 min-h-0 bg-neutral-50">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 min-h-0 bg-neutral-50">
         {loading ? (
           <PageLoader />
         ) : messages.length === 0 ? (
-          <div className="text-center py-10 text-neutral-400">
+          <div className="flex items-center justify-center h-full text-neutral-400">
             <p>No messages yet. Say hello! 👋</p>
           </div>
         ) : (
-          messages.map((msg, i) => {
-            const isFirst = i === 0 || messages[i - 1].senderId !== msg.senderId;
-            const isLast = i === messages.length - 1 || messages[i + 1].senderId !== msg.senderId;
-            return (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                isOwn={msg.senderId === user?.uid}
-                showSender={chat?.type === 'group'}
-                isFirst={isFirst}
-                isLast={isLast}
-              />
-            );
-          })
+          <>
+            {messages.map((msg, i) => {
+              const isFirst = i === 0 || messages[i - 1].senderId !== msg.senderId;
+              const isLast = i === messages.length - 1 || messages[i + 1].senderId !== msg.senderId;
+              return (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isOwn={msg.senderId === user?.uid}
+                  showSender={chat?.type === 'group'}
+                  isFirst={isFirst}
+                  isLast={isLast}
+                />
+              );
+            })}
+            <div ref={bottomRef} className="h-1" />
+          </>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Input bar */}
       <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-2 max-w-lg mx-auto">
           <textarea
             ref={textareaRef}
             value={text}
@@ -136,16 +140,16 @@ export default function ChatThreadPage() {
               }
             }}
             onFocus={() => {
-              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 350);
+              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
             }}
             placeholder="Type a message…"
             rows={1}
-            className="flex-1 resize-none border border-neutral-300 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[40px] max-h-24"
+            className="flex-1 resize-none border border-neutral-300 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[40px] max-h-24 bg-white"
           />
           <button
             onClick={handleSend}
             disabled={!text.trim() || sending}
-            className="w-10 h-10 bg-purple-primary rounded-2xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
+            className="w-10 h-10 bg-purple-primary rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
             aria-label="Send message"
           >
             <Send className="w-4 h-4 text-white" />

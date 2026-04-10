@@ -18,7 +18,7 @@ import type { Era } from '@/lib/types';
 
 export interface OnboardingData {
   name: string;
-  graduationYear: number;
+  graduationYear: number | null;
   era: Era;
   location: string;
   profilePhotoUrl: string | null;
@@ -32,7 +32,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<OnboardingData>({
     name: '',
-    graduationYear: 0,
+    graduationYear: null,
     era: '90s',
     location: '',
     profilePhotoUrl: null,

@@ -60,7 +60,7 @@ export default function ProfileViewPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-neutral-200 divide-y divide-neutral-100">
-          {profile.graduationYear > 0 && (
+          {!!profile.graduationYear && profile.graduationYear > 0 && (
             <div className="flex items-center gap-3 px-4 py-3">
               <GraduationCap className="w-4 h-4 text-neutral-400" />
               <span className="text-sm text-neutral-700">Class of {profile.graduationYear}</span>

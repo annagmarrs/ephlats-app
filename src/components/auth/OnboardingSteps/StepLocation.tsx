@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
 const schema = z.object({
-  location: z.string().min(2, 'Please enter a city and state'),
+  location: z.string().optional().default(''),
 });
 
 interface Props {
@@ -26,7 +26,7 @@ export function StepLocation({ initialLocation, onNext, onBack }: Props) {
     <div className="flex flex-col gap-6 py-8">
       <div>
         <h2 className="text-2xl font-bold text-neutral-900">Where are you based?</h2>
-        <p className="text-neutral-600 mt-1">Helps you reconnect with nearby Ephlats.</p>
+        <p className="text-neutral-600 mt-1">Helps you reconnect with nearby Ephlats. <span className="text-neutral-400">(Optional)</span></p>
       </div>
 
       <form onSubmit={handleSubmit((d) => onNext(d.location))} className="flex flex-col gap-4">

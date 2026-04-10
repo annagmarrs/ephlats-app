@@ -4,7 +4,7 @@ export interface User {
   uid: string;
   email: string;
   name: string;
-  graduationYear: number;
+  graduationYear: number | null;
   era: Era;
   location: string;
   profilePhotoUrl: string | null;
