@@ -69,8 +69,16 @@ export default function ChatThreadPage() {
 
   return (
     <div
-      className="fixed inset-x-0 top-0 z-50 flex flex-col bg-white max-w-lg mx-auto"
-      style={{ height: '100dvh' }}
+      className="fixed z-50 flex flex-col bg-white"
+      style={{
+        top: 0,
+        left: 0,
+        right: 0,
+        maxWidth: '32rem',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        height: '100dvh',
+      }}
     >
       {/* ── Header ── inlined to avoid TopHeader's sticky, which misbehaves
            inside a fixed container on iOS Safari */}

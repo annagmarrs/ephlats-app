@@ -11,6 +11,10 @@
 }
 
 @layer base {
+  html, body {
+    overflow-x: hidden;
+  }
+
   /* Never set font-size in px — use rem/tailwind only */
   body {
     font-family: 'Inter', sans-serif;
