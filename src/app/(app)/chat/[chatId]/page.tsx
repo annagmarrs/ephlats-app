@@ -1,34 +1,42 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { sendMessage, markMessagesRead } from '@/lib/firestore';
 import { useMessages } from '@/hooks/useChat';
 import { useAuth } from '@/contexts/AuthContext';
-import { TopHeader } from '@/components/layout/TopHeader';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { PageLoader } from '@/components/ui/LoadingSpinner';
-import { Send } from 'lucide-react';
+import { ChevronLeft, Send } from 'lucide-react';
 import type { Chat } from '@/lib/types';
 
 export default function ChatThreadPage() {
   const { chatId } = useParams<{ chatId: string }>();
+  const router = useRouter();
   const { user } = useAuth();
   const { messages, loading } = useMessages(chatId);
   const [chat, setChat] = useState<Chat | null>(null);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
-  const [containerHeight, setContainerHeight] = useState<number | null>(null);
+  // Track the visual viewport so the container stays above the keyboard
+  const [vpTop, setVpTop] = useState(0);
+  const [vpHeight, setVpHeight] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Track visual viewport height so container shrinks when keyboard appears
   useEffect(() => {
     const vv = window.visualViewport;
-    if (!vv) { setContainerHeight(window.innerHeight); return; }
-    const update = () => setContainerHeight(vv.height);
+    if (!vv) {
+      setVpTop(0);
+      setVpHeight(window.innerHeight);
+      return;
+    }
+    const update = () => {
+      setVpTop(vv.offsetTop);
+      setVpHeight(vv.height);
+    };
     update();
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
@@ -57,9 +65,7 @@ export default function ChatThreadPage() {
     if (!text.trim() || !user) return;
     const msgText = text.trim();
     setText('');
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setSending(true);
     try {
       await sendMessage(chatId, {
@@ -85,20 +91,46 @@ export default function ChatThreadPage() {
     : 'Chat';
 
   return (
-    // Fixed overlay — breaks out of the app layout (pb-nav etc.) entirely
+    /*
+     * Fixed container sized to the visual viewport (not layout viewport).
+     * - top/height track visualViewport.offsetTop + visualViewport.height so
+     *   it shifts up exactly when the iOS keyboard appears.
+     * - NO overflow-hidden — that clips sticky children on iOS Safari.
+     * - z-50 covers the BottomNav (z-40).
+     */
     <div
-      className="fixed inset-x-0 top-0 z-50 flex flex-col bg-white overflow-hidden"
-      style={{ height: containerHeight ? `${containerHeight}px` : '100dvh' }}
+      className="fixed inset-x-0 z-50 flex flex-col bg-white"
+      style={{
+        top: vpTop,
+        height: vpHeight ?? '100dvh',
+      }}
     >
-      {/* Sticky header */}
-      <TopHeader title={chatName} showBack backHref="/chat" />
+      {/* ── Header ── inlined to avoid TopHeader's sticky, which misbehaves
+           inside a fixed container on iOS Safari */}
+      <div className="flex-shrink-0 bg-purple-light border-b border-purple-primary/15 pt-[env(safe-area-inset-top)]">
+        <div className="flex items-center h-14 px-2 gap-1 max-w-lg mx-auto">
+          <button
+            onClick={() => router.push('/chat')}
+            className="p-2 rounded-xl hover:bg-purple-primary/10 min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+            aria-label="Back"
+          >
+            <ChevronLeft className="w-5 h-5 text-purple-dark" />
+          </button>
+          <h1 className="flex-1 text-center font-bold text-purple-dark text-lg truncate px-1">
+            {chatName}
+          </h1>
+          {/* Balancing spacer so title is truly centered */}
+          <div className="w-11 flex-shrink-0" />
+        </div>
+      </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 min-h-0 bg-neutral-50">
+      {/* ── Messages ── flex-1 + min-h-0 is required so this area can shrink
+           below its content height and not overflow the container */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-3 bg-neutral-50">
         {loading ? (
           <PageLoader />
         ) : messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-neutral-400">
+          <div className="flex items-center justify-center h-full text-neutral-400 text-sm">
             <p>No messages yet. Say hello! 👋</p>
           </div>
         ) : (
@@ -117,21 +149,27 @@ export default function ChatThreadPage() {
                 />
               );
             })}
-            <div ref={bottomRef} className="h-1" />
+            <div ref={bottomRef} className="h-2" />
           </>
         )}
       </div>
 
-      {/* Input bar */}
-      <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-3 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      {/* ── Input bar ── flex-shrink-0 keeps it pinned to bottom of container.
+           env(safe-area-inset-bottom) adds iPhone home-indicator clearance.
+           When keyboard is open, visualViewport shrinks the container so this
+           bar naturally sits just above the keyboard — no extra positioning needed. */}
+      <div className="flex-shrink-0 bg-white border-t border-neutral-200 px-3 py-2"
+        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
+      >
         <div className="flex items-end gap-2 max-w-lg mx-auto">
+          {/* min-w-0 prevents the textarea from overflowing its flex container */}
           <textarea
             ref={textareaRef}
             value={text}
             onChange={(e) => {
               setText(e.target.value);
               e.target.style.height = 'auto';
-              e.target.style.height = Math.min(e.target.scrollHeight, 96) + 'px';
+              e.target.style.height = `${Math.min(e.target.scrollHeight, 96)}px`;
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -140,16 +178,16 @@ export default function ChatThreadPage() {
               }
             }}
             onFocus={() => {
-              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
+              setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 350);
             }}
             placeholder="Type a message…"
             rows={1}
-            className="flex-1 resize-none border border-neutral-300 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[40px] max-h-24 bg-white"
+            className="flex-1 min-w-0 resize-none border border-neutral-300 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-primary min-h-[40px] max-h-24 bg-white"
           />
           <button
             onClick={handleSend}
             disabled={!text.trim() || sending}
-            className="w-10 h-10 bg-purple-primary rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
+            className="flex-shrink-0 w-10 h-10 bg-purple-primary rounded-full flex items-center justify-center disabled:opacity-40 transition-opacity"
             aria-label="Send message"
           >
             <Send className="w-4 h-4 text-white" />
