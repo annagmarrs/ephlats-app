@@ -20,31 +20,8 @@ export default function ChatThreadPage() {
   const [chat, setChat] = useState<Chat | null>(null);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
-  // Track the visual viewport so the container stays above the keyboard
-  const [vpTop, setVpTop] = useState(0);
-  const [vpHeight, setVpHeight] = useState<number | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) {
-      setVpTop(0);
-      setVpHeight(window.innerHeight);
-      return;
-    }
-    const update = () => {
-      setVpTop(vv.offsetTop);
-      setVpHeight(vv.height);
-    };
-    update();
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
-    return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
-    };
-  }, []);
 
   useEffect(() => {
     getDoc(doc(db, 'chats', chatId)).then((snap) => {
@@ -91,23 +68,9 @@ export default function ChatThreadPage() {
     : 'Chat';
 
   return (
-    /*
-     * Fixed container sized to the visual viewport (not layout viewport).
-     * - top/height track visualViewport.offsetTop + visualViewport.height so
-     *   it shifts up exactly when the iOS keyboard appears.
-     * - NO overflow-hidden — that clips sticky children on iOS Safari.
-     * - z-50 covers the BottomNav (z-40).
-     */
     <div
-      className="fixed z-50 flex flex-col bg-white"
-      style={{
-        top: vpTop,
-        left: 0,
-        right: 0,
-        width: '100%',
-        height: vpHeight ?? '100dvh',
-        overflow: 'hidden',
-      }}
+      className="fixed inset-x-0 top-0 z-50 flex flex-col bg-white max-w-lg mx-auto"
+      style={{ height: '100dvh' }}
     >
       {/* ── Header ── inlined to avoid TopHeader's sticky, which misbehaves
            inside a fixed container on iOS Safari */}
@@ -163,13 +126,8 @@ export default function ChatThreadPage() {
            When keyboard is open, visualViewport shrinks the container so this
            bar naturally sits just above the keyboard — no extra positioning needed. */}
       <div
-        className="flex-shrink-0 bg-white border-t border-neutral-200"
-        style={{
-          paddingTop: '6px',
-          paddingRight: 'max(12px, env(safe-area-inset-right))',
-          paddingBottom: 'max(6px, env(safe-area-inset-bottom))',
-          paddingLeft: 'max(12px, env(safe-area-inset-left))',
-        }}
+        className="flex-shrink-0 bg-white border-t border-neutral-200 px-3 pt-1.5"
+        style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
       >
         <div className="flex items-end gap-2 w-full">
           {/* min-w-0 prevents the textarea from overflowing its flex container */}
