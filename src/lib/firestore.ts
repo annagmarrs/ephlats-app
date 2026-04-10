@@ -267,9 +267,10 @@ export async function claimPreloadedAttendee(preloadedId: string, userId: string
     matched: true,
     userId,
   });
-  batch.update(doc(db, 'users', userId), {
+  // Use set+merge so this works during onboarding before the user doc is created
+  batch.set(doc(db, 'users', userId), {
     preloadedAttendeeId: preloadedId,
-  });
+  }, { merge: true });
   await batch.commit();
 }
 

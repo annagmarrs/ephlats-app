@@ -71,9 +71,12 @@ export function StepIdentify({ name, graduationYear, userId, onNext, onBack }: P
   const handleConfirm = async () => {
     if (!selected) return;
     setConfirming(true);
-    await claimPreloadedAttendee(selected.id, userId);
-    setConfirming(false);
-    onNext();
+    try {
+      await claimPreloadedAttendee(selected.id, userId);
+      onNext();
+    } catch {
+      setConfirming(false);
+    }
   };
 
   if (selected) {
