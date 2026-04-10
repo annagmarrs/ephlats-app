@@ -99,10 +99,14 @@ export default function ChatThreadPage() {
      * - z-50 covers the BottomNav (z-40).
      */
     <div
-      className="fixed inset-x-0 z-50 flex flex-col bg-white"
+      className="fixed z-50 flex flex-col bg-white"
       style={{
         top: vpTop,
+        left: 0,
+        right: 0,
+        width: '100%',
         height: vpHeight ?? '100dvh',
+        overflow: 'hidden',
       }}
     >
       {/* ── Header ── inlined to avoid TopHeader's sticky, which misbehaves
@@ -160,7 +164,12 @@ export default function ChatThreadPage() {
            bar naturally sits just above the keyboard — no extra positioning needed. */}
       <div
         className="flex-shrink-0 bg-white border-t border-neutral-200"
-        style={{ padding: '6px 12px', paddingBottom: 'max(6px, env(safe-area-inset-bottom))' }}
+        style={{
+          paddingTop: '6px',
+          paddingRight: 'max(12px, env(safe-area-inset-right))',
+          paddingBottom: 'max(6px, env(safe-area-inset-bottom))',
+          paddingLeft: 'max(12px, env(safe-area-inset-left))',
+        }}
       >
         <div className="flex items-end gap-2 w-full">
           {/* min-w-0 prevents the textarea from overflowing its flex container */}
