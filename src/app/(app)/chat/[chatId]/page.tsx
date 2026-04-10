@@ -92,7 +92,7 @@ export default function ChatThreadPage() {
       <TopHeader title={chatName} showBack backHref="/chat" />
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-1 min-h-0">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 min-h-0 bg-neutral-50">
         {loading ? (
           <PageLoader />
         ) : messages.length === 0 ? (
@@ -100,14 +100,20 @@ export default function ChatThreadPage() {
             <p>No messages yet. Say hello! 👋</p>
           </div>
         ) : (
-          messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              isOwn={msg.senderId === user?.uid}
-              showSender={chat?.type === 'group'}
-            />
-          ))
+          messages.map((msg, i) => {
+            const isFirst = i === 0 || messages[i - 1].senderId !== msg.senderId;
+            const isLast = i === messages.length - 1 || messages[i + 1].senderId !== msg.senderId;
+            return (
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                isOwn={msg.senderId === user?.uid}
+                showSender={chat?.type === 'group'}
+                isFirst={isFirst}
+                isLast={isLast}
+              />
+            );
+          })
         )}
         <div ref={bottomRef} />
       </div>

@@ -32,11 +32,12 @@ const ERA_COLORS: Record<Era, string> = {
   '10s': 'bg-teal-100 text-teal-800',
   '20s': 'bg-green-100 text-green-800',
   'Current Group': 'bg-gold-light text-yellow-800',
+  'Guest': 'bg-neutral-100 text-neutral-600',
 };
 
 export function EraBadge({ era }: { era: Era | string }) {
   const color = ERA_COLORS[era as Era] || 'bg-neutral-100 text-neutral-600';
-  const label = era === 'Current Group' ? 'Current Group' : `${era} Ephlat`;
+  const label = (era === 'Current Group' || era === 'Guest') ? era : `${era} Ephlat`;
   return (
     <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${color}`}>
       {label}

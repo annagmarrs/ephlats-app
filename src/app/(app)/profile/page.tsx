@@ -24,7 +24,7 @@ import type { Era } from '@/lib/types';
 const schema = z.object({
   name: z.string().min(2),
   graduationYear: z.coerce.number().int().min(1960).max(2026),
-  era: z.enum(['60s', '70s', '80s', '90s', '00s', '10s', '20s', 'Current Group'] as const),
+  era: z.enum(['60s', '70s', '80s', '90s', '00s', '10s', '20s', 'Current Group', 'Guest'] as const),
   location: z.string().min(2),
 });
 

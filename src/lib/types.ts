@@ -21,9 +21,9 @@ export interface User {
   lastActiveAt: Timestamp;
 }
 
-export type Era = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s' | 'Current Group';
+export type Era = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s' | 'Current Group' | 'Guest';
 
-export const ERA_OPTIONS: Era[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s', 'Current Group'];
+export const ERA_OPTIONS: Era[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s', 'Current Group', 'Guest'];
 
 export function graduationYearToEra(year: number): Era {
   if (year >= 1960 && year <= 1969) return '60s';
